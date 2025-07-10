@@ -15,9 +15,12 @@
 
 """Tools for visualizing AndroidInTheWild data."""
 
+import logging
 from typing import Optional
 
 from matplotlib import patches
+
+logger = logging.getLogger(__name__)
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -181,7 +184,7 @@ def _plot_action(
     text = 'Set episode status as IMPOSSIBLE'
     _add_text(text, screen_width, screen_height, ax)
   else:
-    print('Action type not supported')
+    logger.warning('Action type not supported')
 
 
 def plot_example(

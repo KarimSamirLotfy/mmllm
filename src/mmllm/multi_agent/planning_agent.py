@@ -1,5 +1,6 @@
 """Planning agent for multimodal action planning."""
 
+import logging
 from typing import Dict, Any, List, Optional
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.types import Command
@@ -9,6 +10,8 @@ from ..model import get_model
 from ..actions.action_schemas import ActionPlan, TapAction, SwipeAction, TypeAction, NavigationAction, StatusAction
 from ..android_in_the_wild.action_type import ActionType
 from .state import MultiAgentState, PlanningOutput, AgentPhase
+
+logger = logging.getLogger(__name__)
 
 
 class PlanningAgent:
@@ -154,7 +157,7 @@ AVAILABLE ACTIONS:
             return result
         except Exception as e:
             # Fallback to manual parsing if structured output fails
-            print(f"Structured output failed, using fallback: {e}")
+            logger.debug(f"Structured output failed, using fallback: {e}")
             response = self.model.invoke(messages)
             return self._parse_model_response(response.content, goal, current_step)
     

@@ -1,3 +1,4 @@
+import logging
 from typing import TypedDict, Annotated, Sequence, Dict, Any, Literal
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
@@ -10,6 +11,8 @@ import os
 from openai import AzureOpenAI
 
 from .model import get_model
+
+logger = logging.getLogger(__name__)
 
 # 1. Define the agent state
 class AgentState(TypedDict):
@@ -88,4 +91,4 @@ if __name__ == "__main__":
     image_input = None  # Replace with actual image data if available
 
     result = run_agent(goal, next_step, text_input, image_input)
-    print(result)
+    logger.info(result)

@@ -1,3 +1,4 @@
+import logging
 import langgraph
 from mmllm.agent import run_agent
 from mmllm.multi_agent import MultiAgentCoordinator
@@ -10,6 +11,8 @@ import io
 from PIL import Image
 
 from mmllm.utils.prints import print_result
+
+logger = logging.getLogger(__name__)
 
 def get_dataset():
     dataset_name = 'google_apps'  #@param ["general", "google_apps", "install", "single", "web_shopping"]
@@ -42,7 +45,7 @@ def get_episode(dataset):
       break
   return episode
 def main():
-    print("=== Multi-Agent Android in the Wild Demo ===")
+    logger.info("=== Multi-Agent Android in the Wild Demo ===")
     
     # Initialize episode loader and coordinator
     episode_loader = EpisodeLoader()
@@ -50,48 +53,48 @@ def main():
     
     try:
         # Try to load real episode
-        print("Loading episode from dataset...")
+        logger.info("Loading episode from dataset...")
         initial_state = episode_loader.get_sample_episode_state('google_apps')
-        print(f"Loaded episode: {initial_state['episode_id']}")
-        print(f"Goal: {initial_state['goal']}")
+        logger.info(f"Loaded episode: {initial_state['episode_id']}")
+        logger.info(f"Goal: {initial_state['goal']}")
         
     except Exception as e:
-        print(f"Could not load real episode ({e}), using mock data...")
+        logger.warning(f"Could not load real episode ({e}), using mock data...")
         initial_state = episode_loader._create_mock_state()
-        print(f"Using mock episode: {initial_state['episode_id']}")
-        print(f"Goal: {initial_state['goal']}")
+        logger.info(f"Using mock episode: {initial_state['episode_id']}")
+        logger.info(f"Goal: {initial_state['goal']}")
     
     # Run multi-agent system
-    print("\n=== Starting Multi-Agent Execution ===")
+    logger.info("=== Starting Multi-Agent Execution ===")
     try:
         final_state = coordinator.run(initial_state)
         
-        print("\n=== Multi-Agent Results ===")
-        print(f"Final phase: {final_state.get('current_phase', 'unknown')}")
-        print(f"Steps completed: {final_state.get('current_step', 0)}")
-        print(f"Errors encountered: {final_state.get('error_count', 0)}")
+        logger.info("=== Multi-Agent Results ===")
+        logger.info(f"Final phase: {final_state.get('current_phase', 'unknown')}")
+        logger.info(f"Steps completed: {final_state.get('current_step', 0)}")
+        logger.info(f"Errors encountered: {final_state.get('error_count', 0)}")
         
         if final_state.get('reflection_output'):
             reflection = final_state['reflection_output']
-            print(f"Goal achieved: {reflection.goal_achieved}")
-            print(f"Progress: {reflection.progress_assessment}")
+            logger.info(f"Goal achieved: {reflection.goal_achieved}")
+            logger.info(f"Progress: {reflection.progress_assessment}")
         
         # Show action history
         action_history = final_state.get('action_history', [])
         if action_history:
-            print(f"\nActions taken ({len(action_history)}):")
+            logger.info(f"Actions taken ({len(action_history)}):")
             for i, action in enumerate(action_history):
-                print(f"  {i+1}. {action.reasoning} (confidence: {action.confidence:.2f})")
+                logger.debug(f"  {i+1}. {action.reasoning} (confidence: {action.confidence:.2f})")
         
-        print("\n=== Single Agent Comparison (Legacy) ===")
+        logger.info("=== Single Agent Comparison (Legacy) ===")
         # Run the old single agent for comparison
         try:
             single_agent_demo(initial_state)
         except Exception as e:
-            print(f"Single agent demo failed: {e}")
+            logger.error(f"Single agent demo failed: {e}")
             
     except Exception as e:
-        print(f"Multi-agent execution failed: {e}")
+        logger.error(f"Multi-agent execution failed: {e}")
         import traceback
         traceback.print_exc()
 
@@ -103,14 +106,14 @@ def single_agent_demo(initial_state):
     ep = get_episode(raw_dataset)
     
     if not ep:
-        print("No episodes available for single agent demo")
+        logger.warning("No episodes available for single agent demo")
         return
         
     for i, ex in enumerate(ep):
         example = ex
-        print(f'Single Agent Example {i}:')
+        logger.debug(f'Single Agent Example {i}:')
         goal = ex.features.feature['goal_info'].bytes_list.value[0].decode('utf-8')
-        print(f'  Goal: {goal}')
+        logger.debug(f'  Goal: {goal}')
         image_height = example.features.feature['image/height'].int64_list.value[0]
         image_width = example.features.feature['image/width'].int64_list.value[0]
         image_channels = example.features.feature['image/channels'].int64_list.value[0]
@@ -135,7 +138,7 @@ def single_agent_demo(initial_state):
     image_input = image
 
     result = run_agent(goal, next_step, text_input, image_input)
-    print(result['next_step'])
+    logger.debug(result['next_step'])
 
 
 

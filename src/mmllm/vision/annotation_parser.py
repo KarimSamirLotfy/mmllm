@@ -1,8 +1,11 @@
 """Parse AiTW UI annotations."""
 
+import logging
 from typing import List, Dict, Any, Optional
 import numpy as np
 import tensorflow as tf
+
+logger = logging.getLogger(__name__)
 
 
 class AnnotationParser:
@@ -43,7 +46,7 @@ class AnnotationParser:
             return annotations
         
         except Exception as e:
-            print(f"Error parsing UI annotations: {e}")
+            logger.error(f"Error parsing UI annotations: {e}")
             return []
     
     def _extract_positions(self, example: tf.train.Example) -> List[List[float]]:
@@ -65,7 +68,7 @@ class AnnotationParser:
             return positions.tolist()
         
         except Exception as e:
-            print(f"Error extracting positions: {e}")
+            logger.debug(f"Error extracting positions: {e}")
             return []
     
     def _extract_texts(self, example: tf.train.Example) -> List[str]:
@@ -78,7 +81,7 @@ class AnnotationParser:
             return texts
         
         except Exception as e:
-            print(f"Error extracting texts: {e}")
+            logger.debug(f"Error extracting texts: {e}")
             return []
     
     def _extract_ui_types(self, example: tf.train.Example) -> List[str]:
@@ -91,7 +94,7 @@ class AnnotationParser:
             return ui_types
         
         except Exception as e:
-            print(f"Error extracting UI types: {e}")
+            logger.debug(f"Error extracting UI types: {e}")
             return []
     
     def extract_action_info(self, example: tf.train.Example) -> Dict[str, Any]:
@@ -124,7 +127,7 @@ class AnnotationParser:
             return action_info
         
         except Exception as e:
-            print(f"Error extracting action info: {e}")
+            logger.debug(f"Error extracting action info: {e}")
             return {}
     
     def extract_episode_info(self, example: tf.train.Example) -> Dict[str, Any]:
@@ -163,7 +166,7 @@ class AnnotationParser:
             return episode_info
         
         except Exception as e:
-            print(f"Error extracting episode info: {e}")
+            logger.debug(f"Error extracting episode info: {e}")
             return {}
     
     def filter_annotations_by_area(self, annotations: List[Dict[str, Any]], 

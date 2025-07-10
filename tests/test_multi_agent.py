@@ -5,7 +5,9 @@ from src.mmllm.multi_agent import MultiAgentCoordinator, MultiAgentState, AgentP
 from src.mmllm.utils import EpisodeLoader
 from src.mmllm.actions import ActionValidator
 from src.mmllm.vision import ImageProcessor
+import logging
 
+logger = logging.getLogger(__name__)
 
 class TestMultiAgent:
     """Test multi-agent coordination."""
@@ -78,7 +80,7 @@ class TestVisionProcessing:
 # Integration test function that can be run manually
 def test_multi_agent_integration():
     """Integration test with mock data."""
-    print("Running integration test...")
+    logger.info("Running integration test...")
     
     # Load mock state
     loader = EpisodeLoader()
@@ -90,11 +92,11 @@ def test_multi_agent_integration():
     # Run the system
     try:
         final_state = coordinator.run(initial_state)
-        print(f"Test completed. Final phase: {final_state.get('current_phase')}")
-        print(f"Steps: {final_state.get('current_step')}")
+        logger.info(f"Test completed. Final phase: {final_state.get('current_phase')}")
+        logger.info(f"Steps: {final_state.get('current_step')}")
         return True
     except Exception as e:
-        print(f"Integration test failed: {e}")
+        logger.error(f"Integration test failed: {e}")
         return False
 
 
