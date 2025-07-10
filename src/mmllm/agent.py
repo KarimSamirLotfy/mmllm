@@ -9,7 +9,7 @@ import os
 import os
 from openai import AzureOpenAI
 
-from model import get_model
+from .model import get_model
 
 # 1. Define the agent state
 class AgentState(TypedDict):

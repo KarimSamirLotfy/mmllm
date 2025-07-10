@@ -19,7 +19,26 @@ import enum
 
 
 class ActionType(enum.IntEnum):
-  """Integer values for each supported action type in AndroidInTheWild."""
+  """
+  ActionType is an enumeration of integer values representing different types of actions
+  supported in the AndroidInTheWild environment.
+  Enum Values:
+    UNUSED_0 (0): Placeholder for an unused action type.
+    UNUSED_1 (1): Placeholder for an unused action type.
+    UNUSED_2 (2): Placeholder for an unused action type.
+    TYPE (3): Sends text to the emulator without performing clicks for focus or submitting text.
+    DUAL_POINT (4): Represents all gesture actions using dual points (e.g., pinch, zoom, click). Clicks are interpreted when the start and end points are the same, while swipes are interpreted when the start and end points differ.
+    PRESS_BACK (5): Represents an explicit press of the back button via ADB.
+    PRESS_HOME (6): Represents an explicit press of the home button via ADB.
+    PRESS_ENTER (7): Represents an ADB command for hitting the enter key.
+    UNUSED_8 (8): Placeholder for an unused action type.
+    UNUSED_9 (9): Placeholder for an unused action type.
+    STATUS_TASK_COMPLETE (10): Indicates the desired task has been completed or is already complete; resets the environment.
+    STATUS_TASK_IMPOSSIBLE (11): Indicates the desired task is impossible to complete; resets the environment.
+  These action types are used to control and monitor agent interactions and episode status within the AndroidInTheWild environment.
+  """
+
+
 
   # Placeholders for unused enum values
   UNUSED_0 = 0
