@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "dotenv>=0.9.9",
+    "ipykernel>=6.29.5",
     "langchain>=0.3.26",
     "langchain-openai>=0.3.27",
     "langgraph>=0.5.2",
