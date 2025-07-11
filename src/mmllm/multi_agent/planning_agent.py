@@ -4,10 +4,8 @@ import logging
 from typing import Dict, Any, List, Optional
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.types import Command
-from pydantic import BaseModel, Field
 
 from ..model import get_model
-from ..actions.action_schemas import ActionPlan, TapAction, SwipeAction, TypeAction, NavigationAction, StatusAction
 from ..android_in_the_wild.action_type import ActionType
 from .state import MultiAgentState, PlanningOutput, AgentPhase
 
@@ -39,6 +37,10 @@ class PlanningAgent:
             action_history = state.get("action_history", [])
             reflection_history = state.get("reflection_history", [])
             
+            # Add support for historical images if available
+            image_history = state.get("image_history", [])
+            episode_images = state.get("episode_images", [])
+            
             # Build context message
             context_parts = [f"Goal: {goal}"]
             if action_history:
@@ -50,6 +52,12 @@ class PlanningAgent:
             if reflection_history:
                 latest_reflection = reflection_history[-1]
                 context_parts.append(f"Latest feedback: {latest_reflection.feedback_for_planning}")
+            
+            # Add historical context if available
+            if episode_images and len(episode_images) > 1:
+                context_parts.append(f"Episode context: {len(episode_images)} screens processed")
+            elif image_history:
+                context_parts.append(f"Recent history: {len(image_history)} previous screens")
             
             context = "\n".join(context_parts)
             
@@ -79,18 +87,9 @@ AVAILABLE ACTIONS:
 4. NavigationAction - Back/Home/Enter buttons
 5. StatusAction - Mark task complete/impossible
 """),
-                HumanMessage(content=[
-                    {
-                        "type": "text",
-                        "text": f"Please analyze this Android interface and plan the next action to achieve the goal.\n\n{ui_analysis_text}\n\nStep {current_step}: What action should be taken next?"
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/png;base64,{current_image}"
-                        }
-                    }
-                ])
+                self._build_multimodal_message(
+                    goal, current_step, current_image, ui_analysis_text, image_history
+                )
             ]
             
             # Get structured planning output
@@ -132,6 +131,46 @@ AVAILABLE ACTIONS:
             }
             
             return Command(goto="END", update=new_state)
+
+    def _build_multimodal_message(
+        self, 
+        goal: str, 
+        current_step: int, 
+        current_image: str, 
+        ui_analysis_text: str,
+        image_history: Optional[List[str]] = None
+    ) -> HumanMessage:
+        """Build multimodal message with optional historical context."""
+        
+        text_content = f"Please analyze this Android interface and plan the next action to achieve the goal.\n\n{ui_analysis_text}\n\nStep {current_step}: What action should be taken next?"
+        
+        # Start with text and current image
+        content = [
+            {
+                "type": "text",
+                "text": text_content
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/png;base64,{current_image}"
+                }
+            }
+        ]
+        
+        # Add historical images if available (limit to last 2 for memory)
+        if image_history:
+            recent_history = image_history[-2:]  # Last 2 images
+            for i, hist_image in enumerate(recent_history):
+                if hist_image:  # Skip empty images
+                    content.append({
+                        "type": "image_url", 
+                        "image_url": {
+                            "url": f"data:image/png;base64,{hist_image}"
+                        }
+                    })
+        
+        return HumanMessage(content=content)
     
     def _build_ui_analysis_prompt(self, ui_annotations: List[Dict[str, Any]]) -> str:
         """Build text description of UI elements."""
@@ -276,7 +315,7 @@ AVAILABLE ACTIONS:
                     y = max(0.0, min(1.0, y))
                     x = max(0.0, min(1.0, x))
                     return [y, x]
-                except:
+                except Exception:
                     continue
         
         return None

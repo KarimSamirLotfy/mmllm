@@ -1,10 +1,8 @@
 """Reflection agent for outcome analysis and feedback."""
 
-from typing import Dict, Any
 from langgraph.types import Command
 from langchain_core.messages import AIMessage
 from .state import MultiAgentState, ReflectionOutput, AgentPhase
-from ..android_in_the_wild.action_type import ActionType
 
 class ReflectionAgent:
     """Analyzes execution outcomes and provides feedback for planning."""
@@ -14,7 +12,6 @@ class ReflectionAgent:
     def reflect(self, state: MultiAgentState) -> Command:
         try:
             execution_output = state.get("execution_output")
-            goal = state["goal"]
             current_step = state["current_step"]
             max_steps = state["max_steps"]
             error_count = state.get("error_count", 0)

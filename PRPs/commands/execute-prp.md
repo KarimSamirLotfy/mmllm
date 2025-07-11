@@ -2,7 +2,7 @@
 
 Implement a feature using using the PRP file.
 
-## PRP File: PRPs/langgraph-multimodal-agent.md
+## PRP File: PRPs/planner_improvement.md
 
 ## Execution Process
 

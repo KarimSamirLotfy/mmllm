@@ -4,7 +4,8 @@ import tensorflow as tf
 from typing import List, Dict, Any, Optional
 from ..vision.image_processor import ImageProcessor
 from ..vision.annotation_parser import AnnotationParser
-from ..multi_agent.state import MultiAgentState, AgentPhase
+from ..multi_agent.state import MultiAgentState, AgentPhase, EpisodeEvaluationState
+from ..android_in_the_wild.action_type import ActionType
 
 
 class EpisodeLoader:
@@ -52,6 +53,172 @@ class EpisodeLoader:
         
         return episode
     
+    def load_episode_with_history(self, episode_examples: List[tf.train.Example]) -> Dict[str, Any]:
+        """
+        Load episode with full historical context for evaluation.
+        
+        Args:
+            episode_examples: List of tf.train.Example from the episode
+            
+        Returns:
+            Dictionary with episode data including historical context
+        """
+        if not episode_examples:
+            raise ValueError("No episode examples provided")
+        
+        episode_images = []
+        ground_truth_actions = []
+        ui_annotations_list = []
+        
+        # Extract episode metadata from first example
+        first_example = episode_examples[0]
+        episode_info = self.annotation_parser.extract_episode_info(first_example)
+        episode_id = episode_info.get("episode_id", "unknown")
+        goal = episode_info.get("goal_info", "Unknown goal")
+        
+        # Process each step in the episode
+        for step_idx, example in enumerate(episode_examples):
+            try:
+                # Decode and encode image
+                image_array = self.image_processor.decode_aitw_image(example)
+                base64_image = self.image_processor.encode_image_for_model(image_array)
+                episode_images.append(base64_image)
+                
+                # Extract UI annotations for this step
+                ui_annotations = self.annotation_parser.parse_ui_annotations(example)
+                ui_annotations_list.append(ui_annotations)
+                
+                # Extract ground truth action
+                ground_truth_action = self._extract_ground_truth_action(example)
+                ground_truth_actions.append(ground_truth_action)
+                
+            except Exception as e:
+                # Handle individual step errors gracefully
+                print(f"Error processing step {step_idx}: {e}")
+                # Use fallback data
+                episode_images.append("")
+                ui_annotations_list.append([])
+                ground_truth_actions.append({"action_type": ActionType.STATUS_TASK_IMPOSSIBLE})
+        
+        return {
+            "episode_id": episode_id,
+            "goal": goal,
+            "episode_length": len(episode_examples),
+            "episode_images": episode_images,
+            "ground_truth_actions": ground_truth_actions,
+            "ui_annotations_list": ui_annotations_list
+        }
+    
+    def create_evaluation_state_for_step(
+        self, 
+        episode_data: Dict[str, Any], 
+        step_index: int
+    ) -> EpisodeEvaluationState:
+        """
+        Create an EpisodeEvaluationState for a specific step with historical context.
+        
+        Args:
+            episode_data: Episode data from load_episode_with_history()
+            step_index: Current step index (0-based)
+            
+        Returns:
+            EpisodeEvaluationState with historical context
+        """
+        if step_index >= len(episode_data["episode_images"]):
+            raise ValueError(f"Step index {step_index} out of range")
+        
+        # Historical context: all images from start to current step
+        historical_images = episode_data["episode_images"][:step_index + 1]
+        
+        state: EpisodeEvaluationState = {
+            # Core goal and step info
+            "goal": episode_data["goal"],
+            "current_step": step_index,
+            "max_steps": min(episode_data["episode_length"], 10),  # Limit for memory
+            "current_phase": AgentPhase.PLANNING,
+            
+            # Current state
+            "current_image": episode_data["episode_images"][step_index],
+            "ui_annotations": episode_data["ui_annotations_list"][step_index],
+            
+            # Historical context
+            "episode_images": historical_images,
+            "episode_id": episode_data["episode_id"],
+            "episode_length": episode_data["episode_length"],
+            
+            # Ground truth for evaluation
+            "current_ground_truth": episode_data["ground_truth_actions"][step_index],
+            "ground_truth_actions": episode_data["ground_truth_actions"],
+            
+            # Messages and communication
+            "messages": [],
+            
+            # Agent outputs (initially None)
+            "planning_output": None,
+            "execution_output": None,
+            "reflection_output": None,
+            
+            # Historical data
+            "action_history": [],
+            "execution_history": [],
+            "reflection_history": [],
+            
+            # Error handling
+            "error_count": 0,
+            "last_error": None,
+            
+            # Evaluation tracking
+            "step_evaluations": None,
+            "final_result": None
+        }
+        
+        return state
+
+    def _extract_ground_truth_action(self, example: tf.train.Example) -> Dict[str, Any]:
+        """Extract ground truth action from tf.train.Example."""
+        try:
+            features = example.features.feature
+            
+            # Extract action type
+            if 'action_type' in features:
+                action_type = features['action_type'].int64_list.value[0]
+            else:
+                action_type = ActionType.DUAL_POINT.value  # Default
+            
+            action = {
+                "action_type": action_type
+            }
+            
+            # Extract coordinates for DUAL_POINT actions
+            if action_type == ActionType.DUAL_POINT.value:
+                if 'touch_point_x' in features and 'touch_point_y' in features:
+                    # Coordinates in AiTW format: normalized [y, x]
+                    touch_y = features['touch_point_y'].float_list.value[0]
+                    touch_x = features['touch_point_x'].float_list.value[0]
+                    action["coordinates"] = [touch_y, touch_x]
+                    
+                    # Check for lift point (swipe)
+                    if 'lift_point_x' in features and 'lift_point_y' in features:
+                        lift_y = features['lift_point_y'].float_list.value[0]
+                        lift_x = features['lift_point_x'].float_list.value[0]
+                        action["lift_coordinates"] = [lift_y, lift_x]
+            
+            # Extract text for TYPE actions
+            elif action_type == ActionType.TYPE.value:
+                if 'typed_text' in features:
+                    text = features['typed_text'].bytes_list.value[0].decode('utf-8')
+                    action["text"] = text
+            
+            return action
+            
+        except Exception as e:
+            print(f"Error extracting ground truth action: {e}")
+            # Return fallback action
+            return {
+                "action_type": ActionType.STATUS_TASK_IMPOSSIBLE.value
+            }
+
+    # ...existing methods...
     def episode_to_multi_agent_state(self, episode: List[tf.train.Example], step_index: int = 0) -> MultiAgentState:
         """Convert AiTW episode step to MultiAgentState."""
         if not episode or step_index >= len(episode):

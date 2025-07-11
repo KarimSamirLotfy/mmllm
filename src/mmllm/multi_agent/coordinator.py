@@ -1,7 +1,7 @@
 """Multi-agent orchestration using LangGraph StateGraph."""
 
 from langgraph.graph import StateGraph, START, END
-from .state import MultiAgentState, AgentPhase
+from .state import MultiAgentState
 from .planning_agent import planning_node
 from .execution_agent import execution_node
 from .reflection_agent import reflection_node

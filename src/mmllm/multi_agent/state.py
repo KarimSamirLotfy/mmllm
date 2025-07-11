@@ -33,12 +33,10 @@ class PlanningOutput(BaseModel):
     )
     reasoning: str = Field(description="Explanation of why this action was chosen")
     confidence: float = Field(description="Confidence score between 0 and 1")
-    # ui_elements_detected: List[dict] = Field(
-    #     default_factory=list, 
-    #     description="UI elements detected in the image",
-    #     json_schema_extra={"additionalProperties": False}
-    # )
-    
+    # Historical context usage tracking
+    historical_context_used: Optional[List[str]] = Field(
+        default=None, description="List of historical context items used in planning"
+    )
 
 
 class ExecutionOutput(BaseModel):
@@ -51,6 +49,10 @@ class ExecutionOutput(BaseModel):
     state_change_detected: bool = Field(
         default=False, description="Whether a state change was detected"
     )
+    # AiTW format compliance
+    aitw_action_format: Optional[Dict[str, Any]] = Field(
+        default=None, description="Action in AiTW dataset format for comparison"
+    )
 
 
 class ReflectionOutput(BaseModel):
@@ -62,6 +64,22 @@ class ReflectionOutput(BaseModel):
     feedback_for_planning: str = Field(
         description="Feedback to improve future planning"
     )
+
+
+class StepEvaluationResult(BaseModel):
+    """Evaluation result for a single step."""
+    step_number: int = Field(description="Step number in the episode")
+    agent_action: Dict[str, Any] = Field(description="Action predicted by agent")
+    ground_truth_action: Dict[str, Any] = Field(description="Ground truth action from dataset")
+    action_match: bool = Field(description="Whether actions match")
+    coordinate_distance: Optional[float] = Field(
+        default=None, description="Euclidean distance between coordinates for spatial actions"
+    )
+    action_type_match: bool = Field(description="Whether action types match")
+    text_match: Optional[bool] = Field(
+        default=None, description="Whether text inputs match for TYPE actions"
+    )
+    evaluation_score: float = Field(description="Score between 0-1 for this step")
 
 
 class MultiAgentState(TypedDict):
@@ -77,6 +95,10 @@ class MultiAgentState(TypedDict):
     # Multimodal inputs
     current_image: str  # Base64 encoded image
     ui_annotations: List[Dict[str, Any]]  # UI element annotations
+    
+    # Historical context for episodes
+    episode_images: Optional[List[str]]  # All previous images in episode
+    image_history: Optional[List[str]]  # Recent image history for context
     
     # Messages and communication
     messages: Annotated[Sequence[BaseMessage], add_messages]
@@ -95,9 +117,52 @@ class MultiAgentState(TypedDict):
     episode_id: Optional[str]
     episode_length: Optional[int]
     
+    # Episode evaluation context
+    current_ground_truth: Optional[Dict[str, Any]]  # Ground truth for current step
+    ground_truth_actions: Optional[List[Dict[str, Any]]]  # All ground truth actions
+    
     # Error handling
     error_count: int
     last_error: Optional[str]
     
     # Success tracking
+    final_result: Optional[Dict[str, Any]]
+
+
+class EpisodeEvaluationState(TypedDict):
+    """Extended state for episode evaluation with historical context."""
+    # Inherit all from MultiAgentState
+    goal: str
+    current_step: int
+    max_steps: int
+    current_phase: AgentPhase
+    current_image: str
+    ui_annotations: List[Dict[str, Any]]
+    
+    # Enhanced episode context
+    episode_images: List[str]  # All images from episode start to current
+    episode_id: str
+    episode_length: int
+    
+    # Ground truth context
+    current_ground_truth: Dict[str, Any]
+    ground_truth_actions: List[Dict[str, Any]]
+    
+    # Messages and outputs
+    messages: Annotated[Sequence[BaseMessage], add_messages]
+    planning_output: Optional[PlanningOutput]
+    execution_output: Optional[ExecutionOutput]
+    reflection_output: Optional[ReflectionOutput]
+    
+    # Historical data
+    action_history: List[PlanningOutput]
+    execution_history: List[ExecutionOutput]
+    reflection_history: List[ReflectionOutput]
+    
+    # Error handling
+    error_count: int
+    last_error: Optional[str]
+    
+    # Evaluation tracking
+    step_evaluations: Optional[List[StepEvaluationResult]]
     final_result: Optional[Dict[str, Any]]

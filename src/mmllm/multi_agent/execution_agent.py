@@ -1,12 +1,10 @@
 """Execution agent for action execution and error handling."""
 
-from typing import Dict, Any
 from langgraph.types import Command
 from langchain_core.messages import AIMessage
 from ..actions.action_executor import ActionExecutor
 from ..actions.action_validator import ActionValidator
 from .state import MultiAgentState, ExecutionOutput, AgentPhase
-from ..android_in_the_wild.action_type import ActionType
 
 
 class ExecutionAgent:

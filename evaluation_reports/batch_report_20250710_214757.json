@@ -1,0 +1,32 @@
+{
+  "report_metadata": {
+    "timestamp": "2025-07-10T21:47:57.483078",
+    "total_episodes": 1,
+    "evaluation_framework": "mmllm-aitw-evaluation"
+  },
+  "aggregate_metrics": {
+    "average_success_rate": 0.2,
+    "best_success_rate": 0.2,
+    "worst_success_rate": 0.2,
+    "total_episodes": 1
+  },
+  "performance_distribution": {
+    "excellent": 0,
+    "good": 0,
+    "fair": 0,
+    "poor": 1
+  },
+  "action_type_analysis": {
+    "analysis": "Action type analysis requires step-level data"
+  },
+  "failure_patterns": {
+    "analysis": "Failure pattern analysis requires step-level error data"
+  },
+  "episode_summaries": [
+    {
+      "episode_id": "2699886024896090523",
+      "success_rate": 0.2,
+      "total_steps": 1
+    }
+  ]
+}

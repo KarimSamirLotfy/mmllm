@@ -1,9 +1,11 @@
 import logging
+import argparse
+import sys
 import langgraph
 from mmllm.agent import run_agent
 from mmllm.multi_agent import MultiAgentCoordinator
 from mmllm.utils import EpisodeLoader
-
+from mmllm.evaluation import EpisodeRunner
 from mmllm.android_in_the_wild import visualization_utils
 import tensorflow as tf
 import base64
@@ -13,6 +15,7 @@ from PIL import Image
 from mmllm.utils.prints import print_result
 
 logger = logging.getLogger(__name__)
+
 
 def get_dataset():
     dataset_name = 'google_apps'  #@param ["general", "google_apps", "install", "single", "web_shopping"]
@@ -28,23 +31,27 @@ def get_dataset():
     raw_dataset = tf.data.TFRecordDataset(filenames, compression_type='GZIP').as_numpy_iterator()
     return raw_dataset
 
+
 def get_episode(dataset):
-  """Grabs the first complete episode."""
-  episode = []
-  episode_id = None
-  for d in dataset:
-    ex = tf.train.Example()
-    ex.ParseFromString(d)
-    ep_id = ex.features.feature['episode_id'].bytes_list.value[0].decode('utf-8')
-    if episode_id is None:
-      episode_id = ep_id
-      episode.append(ex)
-    elif ep_id == episode_id:
-      episode.append(ex)
-    else:
-      break
-  return episode
-def main():
+    """Grabs the first complete episode."""
+    episode = []
+    episode_id = None
+    for d in dataset:
+        ex = tf.train.Example()
+        ex.ParseFromString(d)
+        ep_id = ex.features.feature['episode_id'].bytes_list.value[0].decode('utf-8')
+        if episode_id is None:
+            episode_id = ep_id
+            episode.append(ex)
+        elif ep_id == episode_id:
+            episode.append(ex)
+        else:
+            break
+    return episode
+
+
+def run_demo_mode():
+    """Run original demo functionality."""
     logger.info("=== Multi-Agent Android in the Wild Demo ===")
     
     # Initialize episode loader and coordinator
@@ -52,95 +59,132 @@ def main():
     coordinator = MultiAgentCoordinator()
     
     try:
-        # Try to load real episode
-        logger.info("Loading episode from dataset...")
-        initial_state = episode_loader.get_sample_episode_state('google_apps')
-        logger.info(f"Loaded episode: {initial_state['episode_id']}")
-        logger.info(f"Goal: {initial_state['goal']}")
+        # Load sample episode state
+        logger.info("Loading sample episode...")
+        state = episode_loader.get_sample_episode_state()
+        
+        logger.info(f"Goal: {state['goal']}")
+        logger.info(f"Episode ID: {state.get('episode_id', 'Unknown')}")
+        logger.info(f"Episode Length: {state.get('episode_length', 'Unknown')}")
+        
+        # Run multi-agent system
+        logger.info("Running multi-agent coordination...")
+        result = coordinator.run(state)
+        
+        print_result(result)
+        
+        logger.info("Demo completed successfully!")
         
     except Exception as e:
-        logger.warning(f"Could not load real episode ({e}), using mock data...")
-        initial_state = episode_loader._create_mock_state()
-        logger.info(f"Using mock episode: {initial_state['episode_id']}")
-        logger.info(f"Goal: {initial_state['goal']}")
+        logger.error(f"Demo failed: {e}")
+        return 1
     
-    # Run multi-agent system
-    logger.info("=== Starting Multi-Agent Execution ===")
+    return 0
+
+
+def run_evaluation_mode(dataset_name: str, num_episodes: int, max_steps: int):
+    """Run episode evaluation mode."""
+    logger.info("=== Episode Evaluation Mode ===")
+    logger.info(f"Dataset: {dataset_name}")
+    logger.info(f"Episodes to evaluate: {num_episodes}")
+    logger.info(f"Max steps per episode: {max_steps}")
+    
     try:
-        final_state = coordinator.run(initial_state)
+        # Initialize episode runner
+        runner = EpisodeRunner()
         
-        logger.info("=== Multi-Agent Results ===")
-        logger.info(f"Final phase: {final_state.get('current_phase', 'unknown')}")
-        logger.info(f"Steps completed: {final_state.get('current_step', 0)}")
-        logger.info(f"Errors encountered: {final_state.get('error_count', 0)}")
+        # Run batch evaluation
+        result = runner.run_batch_evaluation(
+            dataset_name=dataset_name,
+            num_episodes=num_episodes,
+            max_steps_per_episode=max_steps
+        )
         
-        if final_state.get('reflection_output'):
-            reflection = final_state['reflection_output']
-            logger.info(f"Goal achieved: {reflection.goal_achieved}")
-            logger.info(f"Progress: {reflection.progress_assessment}")
+        # Print summary
+        batch_summary = result.get("batch_summary", {})
+        logger.info(f"Evaluation complete!")
+        logger.info(f"Episodes processed: {batch_summary.get('episodes_processed', 0)}")
         
-        # Show action history
-        action_history = final_state.get('action_history', [])
-        if action_history:
-            logger.info(f"Actions taken ({len(action_history)}):")
-            for i, action in enumerate(action_history):
-                logger.debug(f"  {i+1}. {action.reasoning} (confidence: {action.confidence:.2f})")
-        
-        logger.info("=== Single Agent Comparison (Legacy) ===")
-        # Run the old single agent for comparison
-        try:
-            single_agent_demo(initial_state)
-        except Exception as e:
-            logger.error(f"Single agent demo failed: {e}")
+        if result.get("episode_results"):
+            avg_success = sum(
+                ep.get("overall_success_rate", 0) for ep in result["episode_results"]
+            ) / len(result["episode_results"])
+            logger.info(f"Average success rate: {avg_success:.1%}")
             
-    except Exception as e:
-        logger.error(f"Multi-agent execution failed: {e}")
-        import traceback
-        traceback.print_exc()
-
-
-def single_agent_demo(initial_state):
-    """Run the original single agent for comparison."""
-    # Get first example from original demo code
-    raw_dataset = get_dataset()
-    ep = get_episode(raw_dataset)
-    
-    if not ep:
-        logger.warning("No episodes available for single agent demo")
-        return
+            # Print individual episode results
+            for i, episode_result in enumerate(result["episode_results"], 1):
+                episode_id = episode_result.get("episode_id", f"episode_{i}")
+                success_rate = episode_result.get("overall_success_rate", 0)
+                total_steps = episode_result.get("total_steps", 0)
+                successful_steps = episode_result.get("successful_steps", 0)
+                
+                logger.info(f"Episode {i} ({episode_id}): {success_rate:.1%} success ({successful_steps}/{total_steps} steps)")
         
-    for i, ex in enumerate(ep):
-        example = ex
-        logger.debug(f'Single Agent Example {i}:')
-        goal = ex.features.feature['goal_info'].bytes_list.value[0].decode('utf-8')
-        logger.debug(f'  Goal: {goal}')
-        image_height = example.features.feature['image/height'].int64_list.value[0]
-        image_width = example.features.feature['image/width'].int64_list.value[0]
-        image_channels = example.features.feature['image/channels'].int64_list.value[0]
-        image = visualization_utils._decode_image(example, image_height, image_width, image_channels)
-        # Convert image tensor to numpy array if it's a tf.Tensor
-        if hasattr(image, 'numpy'):
-            image_np = image.numpy()
-        else:
-            image_np = image
-        # Convert to PIL Image
-        pil_image = Image.fromarray(image_np)
-        # Save to buffer and encode as base64
-        buffered = io.BytesIO()
-        pil_image.save(buffered, format="PNG")
-        img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
-        image=img_base64  # Use the base64 encoded image for the agent
-        break
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Evaluation failed: {e}")
+        return 1
 
-    # Example usage of the single multimodal agent
-    next_step = "find target element"
-    text_input = "analyze the interface and identify actionable elements"
-    image_input = image
 
-    result = run_agent(goal, next_step, text_input, image_input)
-    logger.debug(result['next_step'])
+def main():
+    """Main entry point with argument parsing."""
+    parser = argparse.ArgumentParser(description="Multi-Agent Android in the Wild System")
+    parser.add_argument(
+        "--mode", 
+        choices=["demo", "evaluation"], 
+        default="demo",
+        help="Mode to run: demo (original functionality) or evaluation (episode evaluation)"
+    )
+    parser.add_argument(
+        "--dataset", 
+        default="google_apps",
+        choices=["general", "google_apps", "install", "single", "web_shopping"],
+        help="Dataset to use for evaluation mode"
+    )
+    parser.add_argument(
+        "--episodes", 
+        type=int, 
+        default=3,
+        help="Number of episodes to evaluate in evaluation mode"
+    )
+    parser.add_argument(
+        "--max-steps", 
+        type=int, 
+        default=10,
+        help="Maximum steps per episode in evaluation mode"
+    )
+    parser.add_argument(
+        "--verbose", 
+        action="store_true",
+        help="Enable verbose logging"
+    )
+    
+    args = parser.parse_args()
+    
+    # Set up logging
+    log_level = logging.DEBUG if args.verbose else logging.INFO
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    logger.info(f"Starting in {args.mode} mode")
+    
+    if args.mode == "demo":
+        return run_demo_mode()
+    elif args.mode == "evaluation":
+        return run_evaluation_mode(args.dataset, args.episodes, args.max_steps)
+    else:
+        logger.error(f"Unknown mode: {args.mode}")
+        return 1
 
+
+# Legacy main function for backwards compatibility
+def legacy_main():
+    """Original main function preserved for compatibility."""
+    return run_demo_mode()
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())
