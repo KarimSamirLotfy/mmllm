@@ -11,5 +11,6 @@ wheels/
 
 # logs
 logs/
+evaluation_reports/
 # Environment variables
 .env

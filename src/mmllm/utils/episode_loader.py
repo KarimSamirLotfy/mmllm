@@ -179,11 +179,10 @@ class EpisodeLoader:
         try:
             features = example.features.feature
             
-            # Extract action type
-            if 'action_type' in features:
-                action_type = features['action_type'].int64_list.value[0]
-            else:
-                action_type = ActionType.DUAL_POINT.value  # Default
+            # Extract action type - check results/action_type format first
+            
+            action_type = features['results/action_type'].int64_list.value[0]
+            
             
             action = {
                 "action_type": action_type
@@ -191,18 +190,20 @@ class EpisodeLoader:
             
             # Extract coordinates for DUAL_POINT actions
             if action_type == ActionType.DUAL_POINT.value:
-                if 'touch_point_x' in features and 'touch_point_y' in features:
-                    # Coordinates in AiTW format: normalized [y, x]
-                    touch_y = features['touch_point_y'].float_list.value[0]
-                    touch_x = features['touch_point_x'].float_list.value[0]
+                # Check for results/yx_touch format first
+                if 'results/yx_touch' in features:
+                    yx_touch_values = features['results/yx_touch'].float_list.value
+                    touch_y = yx_touch_values[0]
+                    touch_x = yx_touch_values[1]
                     action["coordinates"] = [touch_y, touch_x]
-                    
-                    # Check for lift point (swipe)
-                    if 'lift_point_x' in features and 'lift_point_y' in features:
-                        lift_y = features['lift_point_y'].float_list.value[0]
-                        lift_x = features['lift_point_x'].float_list.value[0]
-                        action["lift_coordinates"] = [lift_y, lift_x]
-            
+
+                # Check for lift point (swipe) - results/yx_lift format first
+                if 'results/yx_lift' in features:
+                    yx_lift_values = features['results/yx_lift'].float_list.value
+                    lift_y = yx_lift_values[0]
+                    lift_x = yx_lift_values[1]
+                    action["lift_coordinates"] = [lift_y, lift_x]
+
             # Extract text for TYPE actions
             elif action_type == ActionType.TYPE.value:
                 if 'typed_text' in features:
@@ -277,7 +278,7 @@ class EpisodeLoader:
         
         return state
     
-    def get_sample_episode_state(self, dataset_name: str = 'google_apps') -> MultiAgentState:
+    def get_sample_episode_state(self, dataset_name: str = 'google_apps', episode_number=0) -> MultiAgentState:
         """Get a sample episode state for testing."""
         try:
             dataset = self.load_dataset(dataset_name)
@@ -286,7 +287,7 @@ class EpisodeLoader:
             if not episode:
                 raise ValueError("No episode found in dataset")
             
-            return self.episode_to_multi_agent_state(episode, 0)
+            return self.episode_to_multi_agent_state(episode, episode_number)
         
         except Exception as e:
             # Fallback mock state for testing when dataset is not available

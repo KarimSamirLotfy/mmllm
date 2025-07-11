@@ -125,6 +125,7 @@ def _plot_dual_point(
     screen_height,
     screen_width,
     ax,
+    color=_ACTION_COLOR
 ):
   """Plots a dual point action on the given matplotlib axis."""
   if not is_tap_action(
@@ -137,7 +138,7 @@ def _plot_dual_point(
         lift_y * screen_height - touch_y * screen_height,
         head_length=25,
         head_width=25,
-        color=_ACTION_COLOR,
+        color=color,
     )
 
   ax.scatter(
@@ -145,7 +146,7 @@ def _plot_dual_point(
       touch_y * screen_height,
       s=550,
       linewidths=5,
-      color=_ACTION_COLOR,
+      color=color,
       marker='+',
   )
   return ax
