@@ -145,8 +145,10 @@ def plot_episode(
         # Add step title with action comparison
         title = f'Step {i + 1}'
         if show_actions and ground_truth_action and model_action:
-            gt_coords = ground_truth_action.get('coordinates', (0, 0))
-            model_coords = model_action.get('coordinates', (0, 0))
+            gt_coords = ground_truth_action.get('coordinates', [0, 0])  
+            model_coords = model_action.get('coordinates', [0, 0])
+            if len(model_coords) == 0:
+                model_coords = [0, 0]
             # Calculate distance between actions
             distance = np.sqrt((gt_coords[0] - model_coords[0])**2 + (gt_coords[1] - model_coords[1])**2)
             title += f'\nDist: {distance:.3f}'

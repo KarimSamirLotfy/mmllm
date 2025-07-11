@@ -75,7 +75,7 @@ Examples:
 01 =
 {'action_type': 4, 'coordinates': [0.6182800531387329, 0.5757285952568054], 'lift_coordinates': [0.6182800531387329, 0.5757285952568054]}
 02 =
-{'action_type': 10, 'coordinates': [], 'lift_coordinates': [], 'text': None, 'task_done': True}
+{'action_type': 10, 'coordinates': [0, 0], 'lift_coordinates': [0, 0], 'text': None, 'task_done': True}
 
 
 Before interacting:
