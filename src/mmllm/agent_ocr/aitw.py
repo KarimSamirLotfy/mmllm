@@ -5,7 +5,7 @@ from mmllm.agent_ocr.simple_ocr_agent import SimpleOCRAgent
 from mmllm.utils.episode_loader import EpisodeLoader
 from mmllm.utils.visualization import plot_episode
 
-agent = SimpleOCRAgent()
+agent = SimpleOCRAgent(ocr_module=True)
 dataset_name = 'google_apps'  #@param ["general", "google_apps", "install", "single", "web_shopping"]
 
 dataset_directories = {

@@ -1,4 +1,5 @@
 import cv2
+from matplotlib import pyplot as plt
 import pytesseract
 import json
 from pytesseract import Output
@@ -27,7 +28,7 @@ def preprocess_image(pil_image: Image.Image) -> np.ndarray:
     return processed
 
 
-def extract_ui_elements(pil_image: Image.Image, use_preprocess: bool = True):
+def extract_ui_elements(pil_image: Image.Image, use_preprocess: bool = True, normalize: bool = False) -> (list, np.ndarray):
     """Extract UI elements via Tesseract OCR, draw boxes, and emit JSON list."""
     # Choose image for OCR
     #if use_preprocess:
@@ -44,6 +45,8 @@ def extract_ui_elements(pil_image: Image.Image, use_preprocess: bool = True):
 
     # For visualization, convert to BGR color
     vis = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+    # width and height of the image
+    width, height = vis.shape[1], vis.shape[0]
     elements = []
 
     n = len(data['level'])
@@ -56,24 +59,35 @@ def extract_ui_elements(pil_image: Image.Image, use_preprocess: bool = True):
                 data['width'][i], data['height'][i]
             )
             cx, cy = x + w // 2, y + h // 2
-            elements.append({
-                'text': text,
-                'confidence': conf,
-                'bounding_box': {'left': x, 'top': y, 'width': w, 'height': h},
-                'click_point': {'x': cx, 'y': cy}
-            })
             # Draw box & label
             cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.putText(
                 vis, text, (x, y - 6), cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, (0, 0, 255), 1, cv2.LINE_AA
             )
+            if normalize:
+                # Normalize coordinates to [0, 1] range
+                x /= width
+                y /= height
+                w /= width
+                h /= height
+                cx /= width
+                cy /= height
+            elements.append({
+                'text': text,
+                'confidence': conf,
+                'bounding_box': {'left': x, 'top': y, 'width': w, 'height': h},
+                'click_point': {'x': cx, 'y': cy}
+            })
+
 
     return elements, vis
 
 
 if __name__ == '__main__':
     # Load screenshot
-    screenshot = Image.open('screenshot.png')
-    elems = extract_ui_elements(screenshot, use_preprocess=True)
+    screenshot = Image.open('/home/kiko/mmllm/episode_plot.png')
+    elems, vis = extract_ui_elements(screenshot, use_preprocess=True)
+    cv2.imwrite('ocr.png', vis)
+    print(json.dumps(elems, indent=2))
     print(f"Extracted {len(elems)} elements. JSON and bb.png saved.")

@@ -30,6 +30,23 @@ def base64_to_image(base64_string):
     except Exception as e:
         print(f"Error converting base64 to image: {e}")
         return None
+def base64_to_pil_image(base64_string):
+    """Convert base64 string to PIL Image."""
+    try:
+        # Remove data URL prefix if present
+        if base64_string.startswith('data:image'):
+            base64_string = base64_string.split(',')[1]
+        
+        # Decode base64 to bytes
+        image_bytes = base64.b64decode(base64_string)
+        
+        # Create PIL Image from bytes
+        pil_image = Image.open(BytesIO(image_bytes))
+        
+        return pil_image
+    except Exception as e:
+        print(f"Error converting base64 to PIL image: {e}")
+        return None
 def plot_example(
         image,
         touch_x,

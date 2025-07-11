@@ -12,10 +12,14 @@ from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
+import numpy as np
 from pydantic import BaseModel, Field
 
+from mmllm.agent_ocr.extract import extract_ui_elements
+from mmllm.agent_ocr.process import add_grid_with_anchors, overlay_grid_with_anchors
 from mmllm.agent_ocr.prompt import DATASET_PROMPT
 from mmllm.model import get_model
+from mmllm.utils.visualization import base64_to_image, base64_to_pil_image
 
 
 class ActionOutput(BaseModel):
@@ -52,7 +56,7 @@ class AgentState(TypedDict):
 class SimpleOCRAgent:
     """LangGraph-based OCR agent for UI automation"""
     
-    def __init__(self):
+    def __init__(self, ocr_module:bool = False):
         """
         Initialize the agent with a language model
         
@@ -84,6 +88,9 @@ class SimpleOCRAgent:
         # Compile with memory
         memory = MemorySaver()
         self.graph = self.graph_builder.compile(checkpointer=memory)
+
+        self.ocr_module = ocr_module
+
     
     def _image_to_base64(self, image: Any) -> Optional[str]:
         """Convert PIL Image to base64 string."""
@@ -94,6 +101,13 @@ class SimpleOCRAgent:
             if isinstance(image, str):
                 # If it's already a base64 string, return it
                 return image
+            elif isinstance(image, np.ndarray):
+                # Convert numpy array to PIL Image
+                pil_image = Image.fromarray(image)
+                buffer = BytesIO()
+                pil_image.save(buffer, format='PNG')
+                buffer.seek(0)
+                return base64.b64encode(buffer.getvalue()).decode('utf-8')
             elif hasattr(image, 'save'):
                 # PIL Image
                 buffer = BytesIO()
@@ -115,7 +129,18 @@ class SimpleOCRAgent:
         history: Optional[List[HistoryItem]] = None
     ) -> HumanMessage:
         """Build multimodal message with historical context."""
-        
+        if self.ocr_module:
+            pil_image = base64_to_pil_image(current_image)
+            current_ui_description, _ = extract_ui_elements(pil_image, use_preprocess=True, normalize=True)
+            current_image = add_grid_with_anchors(
+                image=pil_image,
+                grid_spacing_percent=0.1,
+                grid_color=(255, 0, 0),
+                alpha=0.3,
+                anchor_color=(255, 255, 0),
+                anchor_radius=5,
+                anchor_labels=False
+            )
         # Build text content with context
         text_content = f"""
         {DATASET_PROMPT}
