@@ -101,7 +101,7 @@ def add_grid_with_anchors(
 
     # Calculate dynamic grid spacing based on image dimensions
     grid_spacing_x = int(width * grid_spacing_percent)
-    grid_spacing_y = int(height * grid_spacing_percent)
+    grid_spacing_y = grid_spacing_x
 
     # Prepare transparent grid layer
     overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
@@ -127,10 +127,9 @@ def add_grid_with_anchors(
     }
 
     # Draw anchor circles and labels
-    try:
-        font = ImageFont.truetype("arial.ttf", 18)
-    except:
-        font = ImageFont.load_default()
+    
+
+    font = ImageFont.load_default()
 
     for label, (x, y) in anchors.items():
         # Draw circle

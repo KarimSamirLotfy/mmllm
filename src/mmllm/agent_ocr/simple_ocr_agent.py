@@ -29,6 +29,7 @@ class ActionOutput(BaseModel):
     lift_coordinates: Optional[List[float]] = Field(default=[0, 0], description="lift coordinates for drag/swipe actions")
     text: Optional[str] = Field(default=None, description="text to type for type_text actions")
     task_done: bool = Field(description="true if the overall goal is achieved")
+    explanation: str = Field(default="", description="explanation of the action taken and why it was chosen")
 
 
 @dataclass
@@ -133,13 +134,13 @@ class SimpleOCRAgent:
             pil_image = base64_to_pil_image(current_image)
             current_ui_description, _ = extract_ui_elements(pil_image, use_preprocess=True, normalize=True)
             current_image = add_grid_with_anchors(
-                image=pil_image,
-                grid_spacing_percent=0.1,
-                grid_color=(255, 0, 0),
-                alpha=0.3,
-                anchor_color=(255, 255, 0),
-                anchor_radius=5,
-                anchor_labels=False
+               image=pil_image,
+               grid_spacing_percent=0.1,
+               grid_color=(255, 0, 0),
+               alpha=0.3,
+               anchor_color=(255, 255, 0),
+               anchor_radius=5,
+               anchor_labels=False
             )
         # Build text content with context
         text_content = f"""

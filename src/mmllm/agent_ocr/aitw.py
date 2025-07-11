@@ -44,7 +44,7 @@ episode_loader = EpisodeLoader()
 episode = episode_loader.load_episode_with_history(episode_tf)
 model_actions = []
 number_of_steps = len(episode['episode_images'])
-for step in range(number_of_steps):
+for step in range(8, number_of_steps):
     image = episode['episode_images'][step]
     ui_annotations_list = episode['ui_annotations_list'][step]
     goal = episode['goal']
