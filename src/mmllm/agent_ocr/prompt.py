@@ -77,7 +77,7 @@ Your job is to:
     PRESS_BACK (5): Represents an explicit press of the back button via ADB.
     PRESS_HOME (6): Represents an explicit press of the home button via ADB.
     PRESS_ENTER (7): Represents an ADB command for hitting the enter key.
-    STATUS_TASK_COMPLETE (10): Indicates the desired task has been completed or is already complete; resets the environment.
+    STATUS_TASK_COMPLETE (10): Indicates the desired task has been completed or is already complete; resets the environment. Make Sure to use this action when and only when the task is completed.
     STATUS_TASK_IMPOSSIBLE (11): Indicates the desired task is impossible to complete; resets the environment.
 
     * To simulate a tap, use: DUAL_POINT with coordinates and lift_coordinates the same.

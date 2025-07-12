@@ -347,7 +347,13 @@ class SimpleOCRAgent:
             final_state = event
             
         # 
-        return final_state
+        final_state_fliped = final_state
+        # Flip coordinates to match ground truth
+        temp = final_state_fliped.get('action', {}).get('coordinates', [0, 0])
+        final_state_fliped['action']['coordinates'] = [temp[1], temp[0]]
+        temp = final_state_fliped.get('action', {}).get('lift_coordinates', [0, 0])
+        final_state_fliped['action']['lift_coordinates'] = [temp[1], temp[0]]
+        return final_state_fliped
     
     def run_agent(self, 
                   image: Any,
