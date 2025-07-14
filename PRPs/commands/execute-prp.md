@@ -2,7 +2,7 @@
 
 Implement a feature using using the PRP file.
 
-## PRP File: PRPs/planner_improvement.md
+## PRP File: PRPs/evaluation_prp.md
 
 ## Execution Process
 

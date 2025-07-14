@@ -1,0 +1,16 @@
+{
+  "dataset_names": [
+    "general"
+  ],
+  "ocr_module": true,
+  "start_episode": 0,
+  "end_episode": null,
+  "output_dir": "/home/kiko/mmllm/benchmark_results",
+  "run_name": "benchmark_general_ocr_20250713_145945",
+  "max_steps_per_episode": 10,
+  "_metadata": {
+    "config_version": "1.0",
+    "saved_at": "config_20250713_145945.json",
+    "config_type": "BenchmarkConfig"
+  }
+}

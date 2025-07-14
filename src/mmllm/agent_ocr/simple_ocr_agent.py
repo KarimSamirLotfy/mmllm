@@ -24,7 +24,14 @@ from mmllm.utils.visualization import base64_to_image, base64_to_pil_image
 
 class ActionOutput(BaseModel):
     """Structured output schema for agent actions."""
-    action_type: int = Field(description="Action type: 1=tap, 2=long_press, 3=swipe, 4=drag, 5=type_text, 0=task_complete")
+    action_type: int = Field(description="""Action type: 
+                                            3=Sends text to the emulator,    
+                                            4=Represents all gesture actions using dual points (e.g., pinch, zoom, click). Clicks are interpreted when the start and end points are the same, while swipes are interpreted when the start and end points differ.
+                                            5=Represents an explicit press of the back button via ADB.
+                                            6=Represents an explicit press of the home button via ADB.
+                                            7=Represents an ADB command for hitting the enter key.
+                                            10=Indicates the desired task has been completed or is already complete; resets the environment.
+                                            11=Indicates the desired task is impossible to complete; resets the environment.""")
     coordinates: List[float] = Field(description="x,y coordinates (0-1 normalized)", default=[0, 0])
     lift_coordinates: Optional[List[float]] = Field(default=[0, 0], description="lift coordinates for drag/swipe actions")
     text: Optional[str] = Field(default=None, description="text to type for type_text actions")
@@ -349,9 +356,9 @@ class SimpleOCRAgent:
         # 
         final_state_fliped = final_state
         # Flip coordinates to match ground truth
-        temp = final_state_fliped.get('action', {}).get('coordinates', [0, 0])
+        temp = final_state_fliped.get('action', {}).get('coordinates', [0, 0]) or [0, 0]
         final_state_fliped['action']['coordinates'] = [temp[1], temp[0]]
-        temp = final_state_fliped.get('action', {}).get('lift_coordinates', [0, 0])
+        temp = final_state_fliped.get('action', {}).get('lift_coordinates', [0, 0]) or [0, 0]
         final_state_fliped['action']['lift_coordinates'] = [temp[1], temp[0]]
         return final_state_fliped
     

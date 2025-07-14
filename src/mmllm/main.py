@@ -13,6 +13,7 @@ import io
 from PIL import Image
 
 from mmllm.utils.prints import print_result
+from mmllm.cli.benchmark_command import BenchmarkCommand
 
 logger = logging.getLogger(__name__)
 
@@ -130,54 +131,84 @@ def run_evaluation_mode(dataset_name: str, num_episodes: int, max_steps: int):
 def main():
     """Main entry point with argument parsing."""
     parser = argparse.ArgumentParser(description="Multi-Agent Android in the Wild System")
+    
+    # Create subparsers for different commands
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    
+    # Add benchmark command
+    benchmark_cmd = BenchmarkCommand()
+    benchmark_cmd.add_parser(subparsers)
+    
+    # Add original demo/evaluation commands as subcommands
+    demo_parser = subparsers.add_parser('demo', help='Run original demo functionality')
+    demo_parser.add_argument('--verbose', action='store_true', help='Enable verbose logging')
+    demo_parser.set_defaults(func=lambda args: run_demo_mode())
+    
+    eval_parser = subparsers.add_parser('evaluate', help='Run episode evaluation')
+    eval_parser.add_argument(
+        '--dataset', 
+        default='google_apps',
+        choices=['general', 'google_apps', 'install', 'single', 'web_shopping'],
+        help='Dataset to use for evaluation'
+    )
+    eval_parser.add_argument('--episodes', type=int, default=3, help='Number of episodes to evaluate')
+    eval_parser.add_argument('--max-steps', type=int, default=1000, help='Maximum steps per episode')
+    eval_parser.add_argument('--verbose', action='store_true', help='Enable verbose logging')
+    eval_parser.set_defaults(func=lambda args: run_evaluation_mode(args.dataset, args.episodes, args.max_steps))
+    
+    # Legacy support - if no subcommand specified, run demo mode
     parser.add_argument(
-        "--mode", 
-        choices=["demo", "evaluation"], 
-        default="demo",
-        help="Mode to run: demo (original functionality) or evaluation (episode evaluation)"
+        '--mode', 
+        choices=['demo', 'evaluation'], 
+        default='evaluation',
+        help='Legacy mode selection (use subcommands instead)'
     )
     parser.add_argument(
-        "--dataset", 
-        default="google_apps",
-        choices=["general", "google_apps", "install", "single", "web_shopping"],
-        help="Dataset to use for evaluation mode"
+        '--dataset', 
+        default='google_apps',
+        choices=['general', 'google_apps', 'install', 'single', 'web_shopping'],
+        help='Dataset to use for evaluation mode'
     )
     parser.add_argument(
-        "--episodes", 
+        '--episodes', 
         type=int, 
         default=3,
-        help="Number of episodes to evaluate in evaluation mode"
+        help='Number of episodes to evaluate in evaluation mode'
     )
     parser.add_argument(
-        "--max-steps", 
+        '--max-steps', 
         type=int, 
         default=10,
-        help="Maximum steps per episode in evaluation mode"
+        help='Maximum steps per episode in evaluation mode'
     )
     parser.add_argument(
-        "--verbose", 
-        action="store_true",
-        help="Enable verbose logging"
+        '--verbose', 
+        action='store_true',
+        help='Enable verbose logging'
     )
     
     args = parser.parse_args()
     
-    # Set up logging
-    log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
     
-    logger.info(f"Starting in {args.mode} mode")
-    
-    if args.mode == "demo":
-        return run_demo_mode()
-    elif args.mode == "evaluation":
-        return run_evaluation_mode(args.dataset, args.episodes, args.max_steps)
-    else:
-        logger.error(f"Unknown mode: {args.mode}")
+    # Route to appropriate function
+    if hasattr(args, 'func'):
+        # New subcommand-based routing
+        return args.func(args)
+    elif args.command:
+        # Handle case where subcommand was specified but no func set
+        logger.error(f"Unknown command: {args.command}")
         return 1
+    else:
+        # Legacy routing
+        logger.info(f"Starting in {args.mode} mode")
+        
+        if args.mode == 'demo':
+            return run_demo_mode()
+        elif args.mode == 'evaluation':
+            return run_evaluation_mode(args.dataset, args.episodes, args.max_steps)
+        else:
+            logger.error(f"Unknown mode: {args.mode}")
+            return 1
 
 
 # Legacy main function for backwards compatibility
@@ -187,4 +218,4 @@ def legacy_main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    main()

@@ -122,7 +122,7 @@ def _add_text(
         0.5 * screen_width,
         0.1 * screen_height,
         text,
-        color='whilte',
+        color='white',
         size=20,
         horizontalalignment='center',
         verticalalignment='center',

@@ -71,7 +71,7 @@ Your job is to:
 - Visually understand the Android UI like a human.
 - Infer the correct flow to complete the user's task.
 - Calculate accurate screen coordinates based on the provided screenshot, if the element of interest is not provided in JSON file, infer it by neighbouring items and using 0.1 by 0.1 grids. 
-- Output a step-by-step action plan using simple operations: THESE ARE THE ONLY ACTION TYPES YOU CAN USE AND THEIR INDEXES:
+- Output a step-by-step action plan using simple operations: THESE ARE THE ONLY ACTION TYPES YOU CAN USE AND THEIR INDEXES: 
     TYPE (3): Sends text to the emulator without performing clicks for focus or submitting text.
     DUAL_POINT (4): Represents all gesture actions using dual points (e.g., pinch, zoom, click). Clicks are interpreted when the start and end points are the same, while swipes are interpreted when the start and end points differ.
     PRESS_BACK (5): Represents an explicit press of the back button via ADB.

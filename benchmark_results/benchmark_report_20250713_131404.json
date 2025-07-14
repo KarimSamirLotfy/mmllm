@@ -1,0 +1,84 @@
+{
+  "report_metadata": {
+    "timestamp": "2025-07-13T13:14:14.793418",
+    "run_name": "benchmark_general_ocr_20250713_131142",
+    "total_episodes": 4,
+    "datasets": [
+      "general"
+    ],
+    "ocr_module": true,
+    "evaluation_framework": "mmllm-aitw-benchmarking"
+  },
+  "overall_metrics": {
+    "accuracy": 0.5454545454545454,
+    "success_rate": 54.166666666666664,
+    "precision": 0.5454545454545454,
+    "recall": 0.5454545454545454,
+    "f1_score": 0.5454545454545454,
+    "total_episodes": 4,
+    "total_steps": 11
+  },
+  "dataset_metrics": {
+    "general": {
+      "accuracy": 0.5454545454545454,
+      "success_rate": 54.166666666666664,
+      "precision": 0.5454545454545454,
+      "recall": 0.5454545454545454,
+      "f1_score": 0.5454545454545454,
+      "total_episodes": 4,
+      "total_steps": 11
+    }
+  },
+  "configuration": {
+    "dataset_names": [
+      "general"
+    ],
+    "ocr_module": true,
+    "start_episode": 0,
+    "end_episode": 4,
+    "max_steps_per_episode": 3
+  },
+  "episode_results": [
+    {
+      "episode_id": "12172380859428428757",
+      "dataset_name": "general",
+      "success_rate": 66.66666666666666,
+      "step_accuracy": 66.66666666666666,
+      "total_steps": 3,
+      "steps_completed": 2,
+      "goal": "Open a new Chrome private window"
+    },
+    {
+      "episode_id": "9027843537045096280",
+      "dataset_name": "general",
+      "success_rate": 50.0,
+      "step_accuracy": 50.0,
+      "total_steps": 2,
+      "steps_completed": 1,
+      "goal": "Open a new Chrome window"
+    },
+    {
+      "episode_id": "2247237893045084693",
+      "dataset_name": "general",
+      "success_rate": 100.0,
+      "step_accuracy": 100.0,
+      "total_steps": 3,
+      "steps_completed": 3,
+      "goal": "Open the calendar and show me this week's events?"
+    },
+    {
+      "episode_id": "12224608131504749719",
+      "dataset_name": "general",
+      "success_rate": 0.0,
+      "step_accuracy": 0.0,
+      "total_steps": 3,
+      "steps_completed": 0,
+      "goal": "How much does a 2x4x8 board cost at Lowes?"
+    }
+  ],
+  "output_files": {
+    "csv_export": "/home/kiko/mmllm/benchmark_results/benchmark_results_20250713_131404.csv",
+    "visualization": "/home/kiko/mmllm/benchmark_results/performance_charts_20250713_131404.png",
+    "configuration": "config_20250713_131404.json"
+  }
+}

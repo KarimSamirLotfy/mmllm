@@ -44,39 +44,33 @@ def get_episodes(dataset, start_episode=0, end_episode=None):
     Yields:
         list: Each complete episode as a list of tf.train.Example objects
     """
+    current_episode_id = None
     episode = []
-    episode_id = None
     episode_count = 0
-    
     for d in dataset:
-        ex = tf.train.Example()
-        ex.ParseFromString(d)
-        ep_id = ex.features.feature['episode_id'].bytes_list.value[0].decode('utf-8')
+        step = tf.train.Example()
+        step.ParseFromString(d)
+        ep_id = step.features.feature['episode_id'].bytes_list.value[0].decode('utf-8')
         
-        # If this is a new episode
-        if episode_id is None or ep_id != episode_id:
-            # If we have a complete previous episode, check if it's in our range
-            if episode and episode_count >= start_episode:
-                if end_episode is None or episode_count < end_episode:
-                    yield episode
-                elif episode_count >= end_episode:
-                    break
-            
-            # Start new episode
-            episode = [ex]
-            episode_id = ep_id
-            
-            # Increment counter for new episode (except for the very first one)
-            if episode:  # Only increment if we had a previous episode
-                episode_count += 1
-        else:
-            # Continue current episode
-            episode.append(ex)
-    
-    # Yield the last episode if it's in range
-    if episode and episode_count >= start_episode:
-        if end_episode is None or episode_count < end_episode:
-            yield episode
+        # If this is the first step, initialize current_episode_id
+        if current_episode_id is None:
+            current_episode_id = ep_id
+            episode.append(step)
+        # If we are still in the same episode, append the step
+        elif ep_id == current_episode_id:
+            episode.append(step)
+        elif ep_id != current_episode_id: # End of current episode
+            if episode_count >= start_episode and (end_episode is None or episode_count < end_episode):
+                yield episode
+            # Reset for the next episode
+            episode_count += 1
+
+            current_episode_id = None
+            episode = []
+
+        if end_episode is not None and episode_count >= end_episode:
+            break
+        
 
 
 def get_episode(dataset):
@@ -95,70 +89,70 @@ def get_episode(dataset):
     else:
       break
   return episode
+if __name__ == "__main__":
+    filenames = tf.io.gfile.glob(dataset_directories[dataset_name])
+    raw_dataset = tf.data.TFRecordDataset(filenames, compression_type='GZIP').as_numpy_iterator()
 
-filenames = tf.io.gfile.glob(dataset_directories[dataset_name])
-raw_dataset = tf.data.TFRecordDataset(filenames, compression_type='GZIP').as_numpy_iterator()
+    # Process multiple episodes using the iterator
+    episode_loader = EpisodeLoader()
 
-# Process multiple episodes using the iterator
-episode_loader = EpisodeLoader()
+    # Example: Process first 3 episodes (change the range as needed)
+    for episode_idx, episode_tf in enumerate(get_episodes(raw_dataset, start_episode=0, end_episode=3)):
+        logger.info(f"\n=== Processing Episode {episode_idx} ===")
+        
+        episode = episode_loader.load_episode_with_history(episode_tf)
+        model_actions = []
+        number_of_steps = len(episode['episode_images'])
+        
+        for step in range(min(12, number_of_steps-2), number_of_steps):
+            image = episode['episode_images'][step]
+            ui_annotations = episode['ui_annotations_list'][step]
+            goal = episode['goal']
+            thread_id = episode['episode_id']
+            ground_truth_action = episode['ground_truth_actions'][step] if 'ground_truth_actions' in episode else None
+            
+            # Run the agent for each step in the episode
+            result = agent.run_step(
+                image=image,  # In real usage, this would be a PIL Image
+                ocr_text=None,
+                ui_description=ui_annotations,
+                goal=goal,
+                thread_id=thread_id
+            )
+            logger.info(f"Episode {episode_idx}, Step {step + 1} Action:")
+            # Print the action decided by the agent
+            logger.info(json.dumps(result.get('action', {}), indent=2))
+            model_actions.append(result.get('action', {}))
+            
+            # Print the ground truth action if available
+            if ground_truth_action:
+                logger.info("Ground Truth Action:")
+                logger.info(json.dumps(ground_truth_action, indent=2))
 
-# Example: Process first 3 episodes (change the range as needed)
-for episode_idx, episode_tf in enumerate(get_episodes(raw_dataset, start_episode=0, end_episode=3)):
-    logger.info(f"\n=== Processing Episode {episode_idx} ===")
-    
-    episode = episode_loader.load_episode_with_history(episode_tf)
-    model_actions = []
-    number_of_steps = len(episode['episode_images'])
-    
-    for step in range(min(12, number_of_steps-2), number_of_steps):
-        image = episode['episode_images'][step]
-        ui_annotations = episode['ui_annotations_list'][step]
-        goal = episode['goal']
-        thread_id = episode['episode_id']
-        ground_truth_action = episode['ground_truth_actions'][step] if 'ground_truth_actions' in episode else None
+            action = result['action']
+            # Check action matching status 
         
-        # Run the agent for each step in the episode
-        result = agent.run_step(
-            image=image,  # In real usage, this would be a PIL Image
-            ocr_text=None,
-            ui_description=ui_annotations,
-            goal=goal,
-            thread_id=thread_id
-        )
-        logger.info(f"Episode {episode_idx}, Step {step + 1} Action:")
-        # Print the action decided by the agent
-        logger.info(json.dumps(result.get('action', {}), indent=2))
-        model_actions.append(result.get('action', {}))
-        
-        # Print the ground truth action if available
-        if ground_truth_action:
-            logger.info("Ground Truth Action:")
-            logger.info(json.dumps(ground_truth_action, indent=2))
-
-        action = result['action']
-        # Check action matching status 
-    
-        matches = check_actions_match(
-          action_1_touch_yx = action.get('coordinates', [0, 0]),
-          action_1_lift_yx = action.get('lift_coordinates', [0, 0]),
-          action_1_action_type = action['action_type'],
-          action_2_touch_yx = ground_truth_action.get('coordinates', [0, 0]),
-          action_2_lift_yx = ground_truth_action.get('lift_coordinates', [0, 0]),
-          action_2_action_type = ground_truth_action['action_type'],
-          # exatract the ui elements [N, 4] list 
-          annotation_positions = jax.numpy.array([ui_element['position'] for ui_element in ui_annotations])
-        )
-        logger.info(f"Actions match: {matches}")
-        logger.info(f"Task completed: {result.get('task_completed', False)}\n")
-        
-        # Visualize the episode
-        plot_episode(
-            episode=episode,
-            model_actions=model_actions,
-            show_actions=True,
-        )
-        
-        # Check if task is done
-        if result.get('task_completed', False):
-            logger.info(f"Episode {episode_idx} - Task completed!")
-            break
+            matches = check_actions_match(
+            action_1_touch_yx = action.get('coordinates', [0, 0]),
+            action_1_lift_yx = action.get('lift_coordinates', [0, 0]),
+            action_1_action_type = action['action_type'],
+            action_2_touch_yx = ground_truth_action.get('coordinates', [0, 0]),
+            action_2_lift_yx = ground_truth_action.get('lift_coordinates', [0, 0]),
+            action_2_action_type = ground_truth_action['action_type'],
+            # exatract the ui elements [N, 4] list 
+            annotation_positions = jax.numpy.array([ui_element['position'] for ui_element in ui_annotations])
+            )
+            logger.info(f"Actions match: {matches}")
+            logger.info(f"Task completed: {result.get('task_completed', False)}\n")
+            
+            # Visualize the episode
+            plot_episode(
+                episode=episode,
+                model_actions=model_actions,
+                show_actions=True,
+            )
+            
+            # Check if task is done
+            if result.get('task_completed', False):
+                logger.info(f"Episode {episode_idx} - Task completed!")
+                break

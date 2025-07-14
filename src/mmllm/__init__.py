@@ -73,8 +73,16 @@ def setup_logging(logging_level=logging.INFO):
     logging.getLogger('google').setLevel(logging.ERROR)
     logging.getLogger('google.auth').setLevel(logging.ERROR)
     logging.getLogger('google.cloud').setLevel(logging.ERROR)
-    
+    logging.getLogger('jax').setLevel(logging.WARNING)
+    logging.getLogger('jax._src.dispatch').setLevel(logging.WARNING)
+    logging.getLogger("matplotlib").setLevel(logging.ERROR)
+    logging.getLogger("pydevd ").setLevel(logging.ERROR)
+    logging.getLogger("h5py").setLevel(logging.ERROR)
+    logging.getLogger("openai").setLevel(logging.ERROR)
+    logging.getLogger("langsmith").setLevel(logging.ERROR)
+    logging.getLogger("httpcore").setLevel(logging.ERROR)
+    logging.getLogger("pytesseract").setLevel(logging.ERROR)
     # Log the setup completion
     logger.info(f"Logging initialized - Console: colored output, File: {log_filename}")
 
-setup_logging()
+setup_logging(logging_level=logging.DEBUG)
