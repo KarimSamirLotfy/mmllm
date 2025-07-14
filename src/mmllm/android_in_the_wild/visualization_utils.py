@@ -29,7 +29,7 @@ from mmllm.android_in_the_wild import action_type
 
 
 _NUM_EXS_PER_ROW = 5
-_ACTION_COLOR = 'blue'
+_ACTION_COLOR = (0, 0, 1, 0.7)  # RGBA: blue with alpha 0.7
 
 
 def is_tap_action(

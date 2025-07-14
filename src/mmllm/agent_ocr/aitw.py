@@ -104,7 +104,7 @@ if __name__ == "__main__":
         model_actions = []
         number_of_steps = len(episode['episode_images'])
         
-        for step in range(min(12, number_of_steps-2), number_of_steps):
+        for step in range(0, number_of_steps):
             image = episode['episode_images'][step]
             ui_annotations = episode['ui_annotations_list'][step]
             goal = episode['goal']
@@ -151,6 +151,7 @@ if __name__ == "__main__":
                 model_actions=model_actions,
                 show_actions=True,
             )
+            logger.info(f"Visualizing episode {episode_idx}, step {step + 1}...")
             
             # Check if task is done
             if result.get('task_completed', False):

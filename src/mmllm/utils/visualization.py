@@ -141,7 +141,7 @@ def plot_episode(
             
             # Plot model action in green color
             if model_action and 'action_type' in model_action:
-                axs[i] = _plot_action(
+                _plot_action(
                     ex_action_type=model_action['action_type'],
                     screen_height=img.shape[0],
                     screen_width=img.shape[1],
