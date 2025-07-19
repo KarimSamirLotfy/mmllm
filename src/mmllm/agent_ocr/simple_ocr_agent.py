@@ -1,6 +1,6 @@
 
 
-from typing import Annotated, TypedDict, List, Dict, Any, Optional
+from typing import Annotated, TypedDict, List, Dict, Any, Optional, Literal
 from PIL import Image
 from dataclasses import dataclass, asdict
 import json
@@ -24,7 +24,7 @@ from mmllm.utils.visualization import base64_to_image, base64_to_pil_image
 
 class ActionOutput(BaseModel):
     """Structured output schema for agent actions."""
-    action_type: int = Field(description="""Action type: 
+    action_type: Literal[3, 4, 5, 6, 7, 10, 11] = Field(description="""Action type: 
                                             3=Sends text to the emulator,    
                                             4=Represents all gesture actions using dual points (e.g., pinch, zoom, click). Clicks are interpreted when the start and end points are the same, while swipes are interpreted when the start and end points differ.
                                             5=Represents an explicit press of the back button via ADB.
