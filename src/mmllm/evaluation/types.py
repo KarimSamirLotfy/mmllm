@@ -57,6 +57,8 @@ class BenchmarkConfig:
     output_dir: str
     run_name: str
     max_steps_per_episode: int = 10
+    max_workers: int = 4  # Number of parallel workers
+    batch_size: int = 5   # Episodes per batch for worker processing
     
     def __post_init__(self):
         """Validate configuration after initialization."""
