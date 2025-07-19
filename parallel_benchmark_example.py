@@ -21,6 +21,8 @@ def main():
     config = BenchmarkConfig(
         dataset_names=['general'],  # Start with just one dataset
         ocr_module=True,
+        prompt_with_android_tree=False,  # Use default prompt
+        add_image_history=True,  # Enable image history for better context
         start_episode=0,
         end_episode=10,  # Process first 10 episodes
         output_dir='./parallel_benchmark_results',
@@ -48,7 +50,7 @@ def main():
         print("PARALLEL BENCHMARK COMPLETED")
         print(f"{'='*60}")
         print(f"Total episodes processed: {len(episode_results)}")
-        print(f"Overall accuracy: {report['overall_metrics']['accuracy']:.2f}%")
+        print(f"Overall accuracy: {report['overall_metrics']['accuracy']:.2f}")
         print(f"Overall success rate: {report['overall_metrics']['success_rate']:.2f}%")
         print(f"Workers used: {config.max_workers}")
         print(f"Batch size: {config.batch_size}")

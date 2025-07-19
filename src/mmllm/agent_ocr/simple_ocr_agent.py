@@ -17,19 +17,18 @@ from pydantic import BaseModel, Field
 
 from mmllm.agent_ocr.extract import extract_ui_elements
 from mmllm.agent_ocr.process import add_grid_with_anchors, overlay_grid_with_anchors
-from mmllm.agent_ocr.prompt import DATASET_PROMPT
+from mmllm.agent_ocr.prompt import AITW_PROMPT, AITW_PROMPT_WITH_ANDROID_TREE
 from mmllm.model import get_model
 from mmllm.utils.visualization import base64_to_image, base64_to_pil_image
 
 
 class ActionOutput(BaseModel):
     """Structured output schema for agent actions."""
-    action_type: Literal[3, 4, 5, 6, 7, 10, 11] = Field(description="""Action type: 
+    action_type: Literal[3, 4, 5, 6, 10, 11] = Field(description="""Action type: 
                                             3=Sends text to the emulator,    
                                             4=Represents all gesture actions using dual points (e.g., pinch, zoom, click). Clicks are interpreted when the start and end points are the same, while swipes are interpreted when the start and end points differ.
                                             5=Represents an explicit press of the back button via ADB.
                                             6=Represents an explicit press of the home button via ADB.
-                                            7=Represents an ADB command for hitting the enter key.
                                             10=Indicates the desired task has been completed or is already complete; resets the environment.
                                             11=Indicates the desired task is impossible to complete; resets the environment.""")
     coordinates: List[float] = Field(description="x,y coordinates (0-1 normalized)", default=[0, 0])
@@ -64,7 +63,7 @@ class AgentState(TypedDict):
 class SimpleOCRAgent:
     """LangGraph-based OCR agent for UI automation"""
     
-    def __init__(self, ocr_module:bool = False):
+    def __init__(self, ocr_module:bool = False, prompt_with_android_tree:bool = False, add_image_history:bool = False):
         """
         Initialize the agent with a language model
         
@@ -98,6 +97,8 @@ class SimpleOCRAgent:
         self.graph = self.graph_builder.compile(checkpointer=memory)
 
         self.ocr_module = ocr_module
+        self.prompt_with_android_tree = prompt_with_android_tree
+        self.add_image_history = add_image_history
 
     
     def _image_to_base64(self, image: Any) -> Optional[str]:
@@ -149,10 +150,14 @@ class SimpleOCRAgent:
                anchor_radius=5,
                anchor_labels=False
             )
+        if self.prompt_with_android_tree:
+            prompt = AITW_PROMPT_WITH_ANDROID_TREE
+        else:
+            prompt = AITW_PROMPT
         # Build text content with context
         text_content = f"""
-        {DATASET_PROMPT}
-        
+        {prompt}
+
         Goal: {goal}
         
         Step {current_step}: Analyze the current UI and decide the next action.
@@ -196,6 +201,8 @@ class SimpleOCRAgent:
         # Add historical images (limit to last 2 for memory)
         if history:
             recent_history = history[-2:]  # Last 2 images
+            if not self.add_image_history:
+                recent_history = []
             for item in recent_history:
                 hist_image_b64 = self._image_to_base64(item.image)
                 if hist_image_b64:

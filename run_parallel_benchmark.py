@@ -60,8 +60,8 @@ def parse_args():
     parser.add_argument(
         '--batch-size', 
         type=int, 
-        default=5,
-        help='Episodes per batch (default: 5)'
+        default=1,
+        help='Episodes per batch given to each worker (default: 1)'
     )
     
     # Output configuration
@@ -83,6 +83,16 @@ def parse_args():
         '--ocr', 
         action='store_true',
         help='Enable OCR module (default: False)'
+    )
+    parser.add_argument(
+        '--prompt-with-android-tree', 
+        action='store_true',
+        help='Use Android tree prompt instead of default prompt (default: False)'
+    )
+    parser.add_argument(
+        '--add-image-history', 
+        action='store_true',
+        help='Include image history in agent context for multi-step reasoning (default: False)'
     )
     parser.add_argument(
         '--sequential', 
@@ -129,6 +139,8 @@ def validate_config(args) -> BenchmarkConfig:
     config = BenchmarkConfig(
         dataset_names=args.datasets,
         ocr_module=args.ocr,
+        prompt_with_android_tree=args.prompt_with_android_tree,
+        add_image_history=args.add_image_history,
         start_episode=args.start_episode,
         end_episode=args.end_episode,
         output_dir=args.output_dir,
@@ -148,7 +160,10 @@ def print_config_summary(config: BenchmarkConfig, sequential: bool):
     print(f"Datasets:        {', '.join(config.dataset_names)}")
     print(f"Episodes:        {config.start_episode} to {config.end_episode or 'end'}")
     print(f"Max steps:       {config.max_steps_per_episode}")
-    print(f"OCR enabled:     {config.ocr_module}")
+    print(f"Agent Config:")
+    print(f"  OCR enabled:             {config.ocr_module}")
+    print(f"  Android tree prompt:     {config.prompt_with_android_tree}")
+    print(f"  Image history:           {config.add_image_history}")
     print(f"Processing:      {'Sequential' if sequential else 'Parallel'}")
     if not sequential:
         print(f"Workers:         {config.max_workers}")
@@ -191,7 +206,7 @@ def main():
         print("BENCHMARK COMPLETED")
         print(f"{'='*60}")
         print(f"Total episodes:  {len(episode_results)}")
-        print(f"Overall accuracy: {report['overall_metrics']['accuracy']:.2f}%")
+        print(f"Overall accuracy: {report['overall_metrics']['accuracy']:.2f}")
         print(f"Success rate:    {report['overall_metrics']['success_rate']:.2f}%")
         print(f"Output files:    {config.output_dir}")
         
@@ -199,7 +214,7 @@ def main():
         if 'dataset_metrics' in report:
             print(f"\nDataset breakdown:")
             for dataset, metrics in report['dataset_metrics'].items():
-                print(f"  {dataset:12} - Accuracy: {metrics['accuracy']:.1f}%, Episodes: {metrics['total_episodes']}")
+                print(f"  {dataset:12} - Accuracy: {metrics['accuracy']:.1f}, Episodes: {metrics['total_episodes']}")
         
         print(f"{'='*60}")
         return 0

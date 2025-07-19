@@ -2,236 +2,209 @@
 
 A multi-agent system for Android in the Wild (AiTW) dataset evaluation and benchmarking.
 
+## Overview
+
+MMLLM is a sophisticated evaluation framework designed to assess multi-modal AI agents on Android user interface interaction tasks. The system combines computer vision, natural language processing, and structured reasoning to interact with Android applications through the Android in the Wild dataset.
+
+### Key Features
+
+- **Multi-Agent Architecture**: Specialized agents for vision, action planning, and strategy
+- **OCR Integration**: Advanced text recognition for enhanced UI understanding
+- **Parallel Processing**: High-performance benchmarking with configurable parallelization
+- **Comprehensive Evaluation**: Support for multiple datasets and evaluation metrics
+- **Research-Ready**: Tools and utilities for analysis, visualization, and reporting
+
 ## Quick Start
 
-### Installation
+### Basic Installation and Setup
 
 ```bash
 # Clone the repository
 git clone <repository-url>
 cd mmllm
 
-# Install dependencies using uv
-uv sync
+# Install dependencies
+uv sync && uv pip install -e .
 
-# Or install in development mode
-uv pip install -e .
+# Set up environment variables (see Installation Guide)
+cp .env.example .env
+# Edit .env with your API keys
 ```
 
-### Basic Usage
-
-Run the benchmarking pipeline with default settings:
+### Run Your First Benchmark
 
 ```bash
-python -m mmllm.main benchmark
+# Simple benchmark
+python -m mmllm.main benchmark --datasets google_apps --episodes 0:3
+
+# Parallel benchmark (recommended)
+uv run run_parallel_benchmark.py --datasets general --end-episode 5 --workers 4
 ```
 
-## Benchmarking
+## Documentation
 
-The benchmarking system provides comprehensive evaluation across multiple Android in the Wild datasets.
+### 📚 Core Guides
 
-### Basic Benchmark Commands
+| Guide | Description | Use Case |
+|-------|-------------|----------|
+| **[Installation Guide](docs/INSTALLATION.md)** | Complete setup instructions, dependencies, and environment configuration | Setting up MMLLM for the first time |
+| **[Benchmarking Guide](docs/BENCHMARKING.md)** | Standard benchmarking system using the main CLI | Running basic evaluations and experiments |
+| **[Parallel Benchmarking Guide](docs/PARALLEL_BENCHMARKING.md)** | High-performance parallel evaluation system | Large-scale benchmarks and research studies |
+| **[System Architecture](docs/SYSTEM_ARCHITECTURE.md)** | Technical architecture, components, and data flow | Understanding system internals and customization |
+| **[Utilities Guide](docs/UTILITIES.md)** | Tools for visualization, analysis, and debugging | Data exploration and result analysis |
 
-**Run benchmark on specific dataset with episode range:**
+### 📋 Quick Reference
+
+| Task | Command | Documentation |
+|------|---------|---------------|
+| Install system | `uv sync && uv pip install -e .` | [Installation](docs/INSTALLATION.md#installation-steps) |
+| Basic benchmark | `python -m mmllm.main benchmark --datasets general --episodes 0:5` | [Benchmarking](docs/BENCHMARKING.md#quick-start) |
+| Parallel benchmark | `uv run run_parallel_benchmark.py --datasets general --end-episode 10` | [Parallel Benchmarking](docs/PARALLEL_BENCHMARKING.md#quick-start) |
+| Plot episode | `python plot_episode.py 5 --dataset general` | [Utilities](docs/UTILITIES.md#episode-plotting) |
+| Analyze results | `python performance_comparison.py --input results.csv` | [Utilities](docs/UTILITIES.md#performance-analysis) |
+
+## Available Datasets
+
+The system supports evaluation on multiple Android in the Wild dataset variants:
+
+- **`general`** - General Android interactions and navigation
+- **`google_apps`** - Google applications specific tasks
+- **`install`** - App installation and setup scenarios
+- **`single`** - Single-step interaction tasks
+- **`web_shopping`** - Web shopping and e-commerce workflows
+
+## Key Capabilities
+
+### 🔬 Research Features
+
+- **OCR vs No-OCR Comparison**: Evaluate impact of text recognition
+- **Model Comparison**: Test different LLM backends (GPT-4, GPT-4 Omni Mini)
+- **Prompt Strategy Testing**: Compare standard vs Android-specific prompts
+- **Stateful vs Stateless**: Analyze impact of conversation history
+
+### ⚡ Performance Features
+
+- **Parallel Processing**: Multi-worker evaluation for faster results
+- **Batch Processing**: Configurable batch sizes for optimization
+- **Resource Management**: Dynamic worker allocation and error recovery
+- **Time Estimation**: Preview benchmark duration before execution
+
+### 📊 Analysis Tools
+
+- **Episode Visualization**: Plot episodes with ground truth overlays
+- **Performance Metrics**: Success rates, timing analysis, error classification
+- **Comparative Analysis**: Side-by-side benchmark comparisons
+- **Export Capabilities**: Multiple output formats for further analysis
+
+## Getting Started by Use Case
+
+### 🔬 Researchers
+
+1. **Setup**: Follow [Installation Guide](docs/INSTALLATION.md)
+2. **Explore Data**: Use [episode plotting](docs/UTILITIES.md#episode-plotting) to understand datasets
+3. **Run Experiments**: Use [parallel benchmarking](docs/PARALLEL_BENCHMARKING.md) for comprehensive evaluation
+4. **Analyze Results**: Use [analysis tools](docs/UTILITIES.md#performance-analysis) for insights
+
+### 👩‍💻 Developers
+
+1. **Setup**: Follow [Installation Guide](docs/INSTALLATION.md)
+2. **Understand Architecture**: Read [System Architecture](docs/SYSTEM_ARCHITECTURE.md)
+3. **Start Simple**: Use [basic benchmarking](docs/BENCHMARKING.md) for development
+4. **Debug**: Use [debugging tools](docs/UTILITIES.md#debugging-tools) for troubleshooting
+
+### 📈 Analysts
+
+1. **Setup**: Follow [Installation Guide](docs/INSTALLATION.md)
+2. **Run Benchmarks**: Use [benchmarking guides](docs/BENCHMARKING.md) to generate data
+3. **Visualize**: Use [plotting tools](docs/UTILITIES.md#episode-plotting) for visualization
+4. **Export**: Use [conversion tools](docs/UTILITIES.md#data-conversion-tools) for external analysis
+
+## Example Workflows
+
+### Research Benchmark Workflow
+
 ```bash
-python -m mmllm.main benchmark --datasets general --episodes 0:1
+# 1. OCR vs No-OCR comparison
+uv run run_parallel_benchmark.py --run-name "NO-OCR" --datasets general --end-episode 10
+uv run run_parallel_benchmark.py --run-name "OCR" --ocr --datasets general --end-episode 10
+
+# 2. Analyze results
+python performance_comparison.py --input benchmark_results/
+
+# 3. Generate visualizations
+python plot_performance.py --input results.csv --output ./charts
 ```
 
-**Run benchmark on multiple datasets:**
+### Development Testing Workflow
+
 ```bash
-python -m mmllm.main benchmark --datasets general google_apps install
+# 1. Quick validation
+python -m mmllm.main benchmark --datasets general --episodes 0:3 --dry-run
+
+# 2. Debug single episode
+python debug_agent.py --dataset general --episode 0 --verbose
+
+# 3. Small-scale test
+python -m mmllm.main benchmark --datasets general --episodes 0:5
 ```
 
-**Quick benchmark with limited episodes:**
-```bash
-python -m mmllm.main benchmark --datasets google_apps --episodes 0:3 --max-steps 5
-```
+## System Requirements
 
-### Available Datasets
+- **Python**: 3.8 or higher
+- **Memory**: 8GB RAM minimum, 16GB recommended for parallel processing
+- **Storage**: 5GB free space for datasets and results
+- **Network**: Stable internet connection for API calls and dataset downloads
 
-- `general` - General Android interactions
-- `google_apps` - Google applications specific tasks
-- `install` - App installation scenarios  
-- `single` - Single-step tasks
-- `web_shopping` - Web shopping workflows
+## API Requirements
 
-### Command Line Options
+- **OpenAI API Key** or **Azure OpenAI** credentials for LLM inference
+- **Tavily API Key** for web search functionality (optional)
+- **LangSmith API Key** for tracing and monitoring (optional)
 
-#### Dataset Selection
-- `--datasets`: Choose one or more datasets (default: `google_apps`)
-- `--episodes`: Episode range in format "start:end" (e.g., "0:5")
-- `--start-episode`: Starting episode index (default: 0)
-- `--end-episode`: Ending episode index (exclusive)
+See [Installation Guide](docs/INSTALLATION.md#environment-configuration) for detailed setup instructions.
 
-#### Agent Configuration
-- `--ocr-module`: Enable OCR module (default: True)
-- `--no-ocr`: Disable OCR module
-- `--max-steps`: Maximum steps per episode (default: 10)
+## Contributing
 
-#### Output Options
-- `--output-dir`: Output directory for results (default: `./benchmark_results`)
-- `--run-name`: Custom name for this benchmark run
-- `--csv-only`: Only generate CSV output, skip visualizations
-- `--no-visualizations`: Skip visualization generation
+We welcome contributions! Please see our contributing guidelines for:
 
-#### Configuration Management
-- `--config`: Load configuration from JSON file
-- `--save-config`: Save configuration to JSON file before running
+- Code style and standards
+- Testing requirements
+- Documentation standards
+- Pull request process
 
-#### Utility Options
-- `--dry-run`: Show configuration and estimates without running
-- `--estimate-time`: Show time estimates for the benchmark
-- `--recommended`: Use predefined configurations (`general`, `quick`, `comprehensive`, `ui_focused`)
+## Support
 
-### Example Commands
+### Documentation Issues
 
-**Basic evaluation on Google Apps dataset:**
-```bash
-python -m mmllm.main benchmark --datasets google_apps --episodes 0:5
-```
+If you find issues with the documentation:
+1. Check the relevant guide in the [docs/](docs/) directory
+2. Search existing issues
+3. Create a new issue with specific details
 
-**Comprehensive benchmark across all datasets:**
-```bash
-python -m mmllm.main benchmark --datasets general google_apps install single web_shopping --episodes 0:10
-```
+### Technical Issues
 
-**Quick test run:**
-```bash
-python -m mmllm.main benchmark --datasets google_apps --episodes 0:1 --max-steps 3 --dry-run
-```
+For technical problems:
+1. Check [troubleshooting sections](docs/INSTALLATION.md#troubleshooting) in the guides
+2. Use [debugging tools](docs/UTILITIES.md#debugging-tools)
+3. Check system requirements and dependencies
 
-**Benchmark without OCR module:**
-```bash
-python -m mmllm.main benchmark --datasets general --episodes 0:2 --no-ocr
-```
+### Feature Requests
 
-**Save configuration for later use:**
-```bash
-python -m mmllm.main benchmark --datasets google_apps --episodes 0:5 --save-config my_benchmark_config.json
-```
+For new features or enhancements:
+1. Review [System Architecture](docs/SYSTEM_ARCHITECTURE.md) for extension points
+2. Check existing feature requests
+3. Create a detailed feature request issue
 
-**Load and run from saved configuration:**
-```bash
-python -m mmllm.main benchmark --config my_benchmark_config.json
-```
+## License
 
-**Use recommended settings for quick testing:**
-```bash
-python -m mmllm.main benchmark --recommended quick
-```
+This project is licensed under the MIT License. See LICENSE file for details.
 
-### Output
+## Acknowledgments
 
-Benchmark results are saved to the specified output directory and include:
+- Android in the Wild dataset from Google Research
+- TensorFlow Datasets for data infrastructure
+- OpenAI and Azure OpenAI for language model capabilities
 
-- **CSV Report**: Detailed episode-by-episode results
-- **JSON Report**: Structured benchmark data
-- **Visualizations**: Performance charts and graphs (unless disabled)
-- **Configuration**: The exact configuration used for the benchmark
+---
 
-Results are timestamped and organized by run for easy comparison.
-
-### Configuration Files
-
-You can create reusable benchmark configurations in JSON format:
-
-```json
-{
-  "dataset_names": ["google_apps", "general"],
-  "episode_range": {"start": 0, "end": 5},
-  "max_steps_per_episode": 10,
-  "enable_ocr": true,
-  "output_dir": "./my_results"
-}
-```
-
-## Legacy Commands
-
-The system also supports legacy demo and evaluation commands:
-
-**Run demo mode:**
-```bash
-python -m mmllm.main demo
-```
-
-**Run evaluation mode:**
-```bash
-python -m mmllm.main evaluate --dataset google_apps --episodes 3 --max-steps 10
-```
-
-
-## Episode Plotting
-
-For visualizing individual episodes from the Android in the Wild dataset, use the `plot_episode.py` script:
-
-### Basic Usage
-
-**Plot a specific episode by index:**
-```bash
-python plot_episode.py 5
-```
-
-**Plot from a different dataset:**
-```bash
-python plot_episode.py 10 --dataset general
-```
-
-**Save plots to a specific directory:**
-```bash
-python plot_episode.py 5 --output_dir ./my_plots
-```
-
-### Available Options
-
-- `episode_index` (required): The episode index to plot (0-based)
-- `--dataset`: Dataset to use (choices: `general`, `google_apps`, `install`, `single`, `web_shopping`, default: `google_apps`)
-- `--output_dir`: Output directory for plots (default: `./plots`)
-
-### Features
-
-- **Ground Truth Visualization**: The script plots the episode with ground truth actions highlighted
-- **Automatic Directory Creation**: Output directory is created if it doesn't exist
-- **Multiple Dataset Support**: Works with all Android in the Wild datasets
-- **Simple Interface**: Minimal command-line interface focused on episode visualization
-
-### Examples
-
-**Plot episode 0 from Google Apps dataset:**
-```bash
-python plot_episode.py 0
-```
-
-**Plot episode 15 from Install dataset to custom directory:**
-```bash
-python plot_episode.py 15 --dataset install --output_dir ./episode_visualizations
-```
-
-**Plot multiple episodes (run separately):**
-```bash
-python plot_episode.py 0 --output_dir ./plots
-python plot_episode.py 1 --output_dir ./plots
-python plot_episode.py 2 --output_dir ./plots
-```
-
-The generated plots will show the episode screens with ground truth actions overlaid, making it easy to understand the expected user interactions for each step.
-
-## Troubleshooting
-
-- Ensure all dependencies are installed correctly
-- Check that TensorFlow datasets are accessible
-- Verify sufficient disk space for results output
-- Use `--dry-run` to validate configuration before running
-
-
-# Benchmarking results 
-## What we want to test?
-1. OCR vs NO OCR 
-* all datasets, 10 episodes, max_steps=5
-
-2. different models o-mini vs gpt4
-* general, 10 spisodes, max_steps=5
-
-3. Some visulasaiotns
-* What is most comman error
-* average devation from user input to model input
-* 
+**Next Steps**: Start with the [Installation Guide](docs/INSTALLATION.md) to set up your environment, then explore the specific guides based on your use case.

@@ -1,6 +1,14 @@
 # Parallel Benchmarking Pipeline
 
-This enhanced benchmarking pipeline supports parallel processing to significantly speed up evaluation of large datasets.
+This enhanced benchmarking pipeline supports parallel processing to significantly speed up evaluation of large datasets. This is the primary benchmarking system used for generating reports and comprehensive evaluations.
+
+## Overview
+
+The parallel benchmarking system provides:
+- **High-performance evaluation**: Process multiple episodes simultaneously
+- **Scalable architecture**: Configure workers and batch sizes based on system resources
+- **Comprehensive testing**: Support for various agent configurations and datasets
+- **Research-ready output**: Generate detailed reports suitable for analysis
 
 ## Key Features
 
@@ -11,76 +19,260 @@ This enhanced benchmarking pipeline supports parallel processing to significantl
 - **Error handling**: Failed batches don't stop the entire benchmark
 - **Fallback support**: Sequential processing available as fallback
 
-## CLI Usage
+## Quick Start
 
-The parallel benchmarking pipeline can be accessed through two different command-line interfaces:
-
-### 1. Integrated CLI (Recommended)
-
-Use the main CLI through the `mmllm` module:
+### Basic Usage
 
 ```bash
-# Basic benchmark
-python -m mmllm benchmark --datasets general --end-episode 20
-
-# Parallel benchmark with custom workers
-python -m mmllm benchmark \
-  --datasets general google_apps \
-  --episodes 0:50 \
-  --max-workers 8 \
-  --batch-size 10 \
-  --ocr-module \
-  --output-dir ./benchmark_results \
-  --run-name my_benchmark
-
-# Quick development test
-python -m mmllm benchmark \
-  --datasets general \
-  --episodes 0:5 \
-  --max-workers 2 \
-  --batch-size 2
-
-# Show time estimates without running
-python -m mmllm benchmark \
-  --datasets general google_apps \
-  --episodes 0:100 \
-  --estimate-time \
-  --dry-run
-
-# Load configuration from file
-python -m mmllm benchmark --config ./my_config.json
+# Run parallel benchmark with default settings
+uv run run_parallel_benchmark.py --datasets general --end-episode 10
 ```
 
-### 2. Standalone Script
-
-Use the dedicated script for more direct control:
+### Command Line Interface
 
 ```bash
-# Basic parallel benchmark
-python run_parallel_benchmark.py \
-  --datasets general \
-  --workers 4 \
-  --batch-size 5 \
-  --end-episode 20
+usage: run_parallel_benchmark.py [-h]
+                                 [--datasets {general,google_apps,install,single,web_shopping} [{general,google_apps,install,single,web_shopping} ...]]
+                                 [--start-episode START_EPISODE]
+                                 [--end-episode END_EPISODE]
+                                 [--max-steps MAX_STEPS]
+                                 [--workers WORKERS]
+                                 [--batch-size BATCH_SIZE]
+                                 [--output-dir OUTPUT_DIR]
+                                 [--run-name RUN_NAME] [--ocr]
+                                 [--prompt-with-android-tree]
+                                 [--add-image-history]
+                                 [--sequential] [--verbose]
+```
 
-# High-performance benchmark
-python run_parallel_benchmark.py \
-  --datasets general google_apps \
-  --workers 8 \
-  --batch-size 10 \
-  --end-episode 100 \
-  --max-steps 15 \
-  --ocr \
-  --output-dir ./results \
-  --run-name high_performance_benchmark
+### Command Line Options
 
-# Sequential fallback for debugging
-python run_parallel_benchmark.py \
-  --sequential \
-  --datasets general \
+- `--datasets`: Datasets to process (choices: general, google_apps, install, single, web_shopping; default: general)
+- `--start-episode`: Starting episode index (default: 0)
+- `--end-episode`: Ending episode index (default: None for all episodes)
+- `--max-steps`: Maximum steps per episode (default: 10)
+- `--workers`: Number of parallel workers (default: 4)
+- `--batch-size`: Episodes per batch (default: 5)
+- `--output-dir`: Output directory for results (default: ./benchmark_results)
+- `--run-name`: Name for this benchmark run (default: parallel_benchmark)
+- `--ocr`: Enable OCR module (default: False)
+- `--prompt-with-android-tree`: Use Android tree prompt instead of default prompt (default: False)
+- `--add-image-history`: Include image history in agent context for multi-step reasoning (default: False)
+- `--sequential`: Use sequential processing instead of parallel (default: False)
+- `--verbose`: Enable verbose logging (default: False)
+
+## Example Commands
+
+### Basic Benchmarks
+
+**Standard benchmark with OCR:**
+```bash
+uv run run_parallel_benchmark.py --run-name "standard-ocr" --ocr --end-episode 10 --workers 4
+```
+
+**Multi-dataset benchmark:**
+```bash
+uv run run_parallel_benchmark.py \
+  --datasets general google_apps install single web_shopping \
   --end-episode 10 \
-  --verbose
+  --workers 10 \
+  --batch-size 1
 ```
+
+**High-performance benchmark:**
+```bash
+uv run run_parallel_benchmark.py \
+  --datasets general \
+  --end-episode 50 \
+  --workers 8 \
+  --batch-size 5 \
+  --ocr \
+  --max-steps 15
+```
+
+## Research Benchmarks
+
+These are the benchmark configurations used for generating the research report:
+
+### 1. OCR vs NO OCR Comparison
+
+Test the impact of OCR module across all datasets with 10 episodes each:
+
+```bash
+# Without OCR
+uv run run_parallel_benchmark.py \
+  --run-name "NO-OCR" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+
+# With OCR
+uv run run_parallel_benchmark.py \
+  --run-name "OCR" \
+  --ocr \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+```
+
+### 2. Model Comparison (GPT-4 vs GPT-4 Omni Mini)
+
+Change model deployment in `.env` file between runs:
+
+```bash
+# GPT-4 (set AZURE_DEPLOYMENT="gpt-4" in .env)
+uv run run_parallel_benchmark.py \
+  --run-name "GPT4" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+
+# GPT-4 Omni Mini (set AZURE_DEPLOYMENT="o4-mini" in .env)
+uv run run_parallel_benchmark.py \
+  --run-name "O-Mini" \
+  --ocr \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+```
+
+### 3. Stateful vs Stateless Agent Comparison
+
+Test the impact of image history on agent performance:
+
+```bash
+# Stateless (no image history)
+uv run run_parallel_benchmark.py \
+  --run-name "stateless" \
+  --ocr \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+
+# Stateful (with image history)
+uv run run_parallel_benchmark.py \
+  --add-image-history \
+  --ocr \
+  --run-name "stateful" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+```
+
+### 4. Android Tree Prompt vs Standard Prompt
+
+Test different prompting strategies:
+
+```bash
+# Standard prompt
+uv run run_parallel_benchmark.py \
+  --run-name "standard-prompt" \
+  --ocr \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+
+# Android tree prompt
+uv run run_parallel_benchmark.py \
+  --prompt-with-android-tree \
+  --ocr \
+  --run-name "android-tree-prompt" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+```
+
+## Performance Optimization
+
+### Time Estimates
+
+- **Steps per Worker**: Approximately 3 minutes per step
+- **Example**: 50 steps on 10 workers = ~15 minutes total
+- **Scaling**: Linear scaling with number of workers (up to system limits)
+
+### Worker Configuration
+
+#### Recommended Worker Settings
+
+- **Development/Testing**: 2-4 workers
+- **Standard Benchmarks**: 4-8 workers
+- **High-Performance**: 8-16 workers (depends on system resources)
+
+#### Batch Size Guidelines
+
+- **Small batches (1-2)**: Better error isolation, more overhead
+- **Medium batches (5-10)**: Good balance of performance and reliability
+- **Large batches (10+)**: Maximum throughput, potential memory issues
+
+### System Requirements
+
+- **CPU**: Multi-core processor (8+ cores recommended for high-performance)
+- **Memory**: 16GB+ RAM for large-scale benchmarks
+- **Network**: Stable internet for API calls
+- **Storage**: SSD recommended for dataset access
+
+## Output and Results
+
+### Generated Files
+
+- **CSV Report**: Detailed episode-by-episode results (`benchmark_results_TIMESTAMP.csv`)
+- **JSON Report**: Structured benchmark data (`benchmark_report_TIMESTAMP.json`)
+- **Configuration**: The exact configuration used (`config_TIMESTAMP.json`)
+- **Logs**: Execution logs (`TIMESTAMP.log`)
+
+### Result Analysis
+
+Results include:
+- **Success rates** per dataset and episode
+- **Error classifications** and common failure modes
+- **Performance metrics** (steps taken, accuracy scores)
+- **Timing information** for performance analysis
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Worker crashes**: Reduce batch size or number of workers
+2. **Memory errors**: Lower worker count or episode range
+3. **API rate limits**: Reduce workers or add delays
+4. **Network timeouts**: Check internet connection and API endpoints
+
+### Debugging Options
+
+```bash
+# Sequential processing for debugging
+uv run run_parallel_benchmark.py --sequential --verbose --end-episode 1
+
+# Single worker with verbose output
+uv run run_parallel_benchmark.py --workers 1 --verbose --end-episode 5
+```
+
+### Performance Monitoring
+
+Monitor system resources during execution:
+- **CPU usage**: Should be near maximum with proper parallelization
+- **Memory usage**: Watch for memory leaks in long runs
+- **Network I/O**: Monitor API call patterns
+- **Disk I/O**: Dataset loading can be I/O intensive
+
+## Next Steps
+
+- **Result Analysis**: Use visualization tools to analyze benchmark results
+- **Configuration Tuning**: Adjust settings based on initial benchmark results
+- **Custom Experiments**: Modify agent configurations for specific research questions
+- **Integration**: Incorporate results into larger evaluation pipelines
+
+For visualization and analysis tools, see [Utilities Guide](UTILITIES.md).
+
+
 
 ### CLI Options Reference
 
@@ -100,6 +292,8 @@ python run_parallel_benchmark.py \
 #### Agent Configuration
 - `--ocr-module` / `--ocr`: Enable OCR module
 - `--no-ocr`: Disable OCR module (integrated CLI only)
+- `--prompt-with-android-tree`: Use Android tree prompt instead of default prompt
+- `--add-image-history`: Include image history in agent context for multi-step reasoning
 
 #### Utility Options (Integrated CLI)
 - `--config`: Load configuration from JSON file
@@ -182,15 +376,45 @@ ls -la ./benchmark_results/
 
 ## Configuration Parameters
 
-The `BenchmarkConfig` class now includes parallel processing parameters:
+The `BenchmarkConfig` class includes parallel processing and agent configuration parameters:
 
 ```python
 @dataclass
 class BenchmarkConfig:
-    # ... existing parameters ...
+    # Core configuration
+    dataset_names: List[str]
+    ocr_module: bool
+    start_episode: int
+    end_episode: Optional[int]
+    output_dir: str
+    run_name: str
+    max_steps_per_episode: int = 10
+    
+    # Parallel processing parameters
     max_workers: int = 4      # Number of parallel workers
     batch_size: int = 5       # Episodes per batch for worker processing
+    
+    # Agent configuration parameters
+    prompt_with_android_tree: bool = False  # Use Android tree prompt
+    add_image_history: bool = False         # Include image history context
 ```
+
+### Agent Configuration Options
+
+#### OCR Module (`ocr_module`)
+- **Default**: `False`
+- **Description**: Enables OCR text extraction and UI element processing
+- **Use Case**: Better understanding of UI text and structure
+
+#### Android Tree Prompt (`prompt_with_android_tree`)
+- **Default**: `False`
+- **Description**: Uses Android accessibility tree prompt instead of default prompt
+- **Use Case**: Leverages Android's accessibility information for more precise UI navigation
+
+#### Image History (`add_image_history`)
+- **Default**: `False`
+- **Description**: Includes previous images in agent context for multi-step reasoning
+- **Use Case**: Helps agent understand UI transitions and maintain context across steps
 
 ## Usage Examples
 
@@ -200,14 +424,16 @@ class BenchmarkConfig:
 from src.mmllm.evaluation.benchmarking_pipeline import BenchmarkingPipeline
 from src.mmllm.evaluation.types import BenchmarkConfig
 
-# Configure parallel processing
+# Configure parallel processing with enhanced agent
 config = BenchmarkConfig(
     dataset_names=['general', 'google_apps'],
     ocr_module=True,
+    prompt_with_android_tree=False,  # Use default prompt
+    add_image_history=True,          # Enable image history for better context
     start_episode=0,
     end_episode=50,
     output_dir='./results',
-    run_name='parallel_benchmark',
+    run_name='enhanced_parallel_benchmark',
     max_workers=8,      # Use 8 parallel workers
     batch_size=5        # Process 5 episodes per batch
 )

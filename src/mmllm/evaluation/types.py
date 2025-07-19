@@ -59,6 +59,8 @@ class BenchmarkConfig:
     max_steps_per_episode: int = 10
     max_workers: int = 4  # Number of parallel workers
     batch_size: int = 5   # Episodes per batch for worker processing
+    prompt_with_android_tree: bool = False  # Use Android tree prompt instead of default
+    add_image_history: bool = False  # Include image history in agent context
     
     def __post_init__(self):
         """Validate configuration after initialization."""

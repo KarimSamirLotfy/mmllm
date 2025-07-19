@@ -97,7 +97,7 @@ if __name__ == "__main__":
     episode_loader = EpisodeLoader()
 
     # Example: Process first 3 episodes (change the range as needed)
-    for episode_idx, episode_tf in enumerate(get_episodes(raw_dataset, start_episode=0, end_episode=3)):
+    for episode_idx, episode_tf in enumerate(get_episodes(raw_dataset, start_episode=5, end_episode=6)):
         logger.info(f"\n=== Processing Episode {episode_idx} ===")
         
         episode = episode_loader.load_episode_with_history(episode_tf)

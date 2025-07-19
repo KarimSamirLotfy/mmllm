@@ -86,6 +86,18 @@ class BenchmarkCommand:
             help='Disable OCR module in agent'
         )
         
+        parser.add_argument(
+            '--prompt-with-android-tree',
+            action='store_true',
+            help='Use Android tree prompt instead of default prompt'
+        )
+        
+        parser.add_argument(
+            '--add-image-history',
+            action='store_true',
+            help='Include image history in agent context for multi-step reasoning'
+        )
+        
         # Processing parameters
         parser.add_argument(
             '--max-steps',
@@ -274,13 +286,19 @@ class BenchmarkCommand:
         # Handle OCR module setting
         ocr_module = args.ocr_module and not args.no_ocr
         
+        # Handle new agent configuration options
+        prompt_with_android_tree = getattr(args, 'prompt_with_android_tree', False)
+        add_image_history = getattr(args, 'add_image_history', False)
+        
         # Generate run name if not provided
         run_name = args.run_name
         if not run_name:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             ocr_suffix = "ocr" if ocr_module else "no_ocr"
+            android_tree_suffix = "tree" if prompt_with_android_tree else "default"
+            history_suffix = "hist" if add_image_history else "no_hist"
             dataset_suffix = "_".join(datasets[:2])  # First 2 datasets
-            run_name = f"benchmark_{dataset_suffix}_{ocr_suffix}_{timestamp}"
+            run_name = f"benchmark_{dataset_suffix}_{ocr_suffix}_{android_tree_suffix}_{history_suffix}_{timestamp}"
         
         # Create output directory
         output_dir = Path(args.output_dir).resolve()
@@ -289,6 +307,8 @@ class BenchmarkCommand:
         config = BenchmarkConfig(
             dataset_names=datasets,
             ocr_module=ocr_module,
+            prompt_with_android_tree=prompt_with_android_tree,
+            add_image_history=add_image_history,
             start_episode=start_episode,
             end_episode=end_episode,
             output_dir=str(output_dir),
@@ -329,7 +349,10 @@ class BenchmarkCommand:
         self.logger.info("=== Benchmark Configuration ===")
         self.logger.info(f"Run name: {config.run_name}")
         self.logger.info(f"Datasets: {', '.join(config.dataset_names)}")
-        self.logger.info(f"OCR module: {config.ocr_module}")
+        self.logger.info(f"Agent Configuration:")
+        self.logger.info(f"  OCR module: {config.ocr_module}")
+        self.logger.info(f"  Android tree prompt: {config.prompt_with_android_tree}")
+        self.logger.info(f"  Image history: {config.add_image_history}")
         
         episode_range = f"{config.start_episode}-{config.end_episode}" if config.end_episode else f"{config.start_episode}+"
         self.logger.info(f"Episode range: {episode_range}")

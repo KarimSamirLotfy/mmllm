@@ -7,7 +7,7 @@
 python run_parallel_benchmark.py --datasets general --workers 4 --batch-size 5 --end-episode 20
 ```
 
-### High-performance parallel benchmark
+### High-performance parallel benchmark with enhanced agent
 ```bash
 python run_parallel_benchmark.py \
   --datasets general google_apps \
@@ -16,8 +16,10 @@ python run_parallel_benchmark.py \
   --end-episode 100 \
   --max-steps 15 \
   --ocr \
+  --prompt-with-android-tree \
+  --add-image-history \
   --output-dir ./high_perf_results \
-  --run-name high_performance_benchmark
+  --run-name enhanced_benchmark
 ```
 
 ### Development/testing (small, fast)
@@ -46,6 +48,8 @@ from src.mmllm.evaluation.types import BenchmarkConfig
 config = BenchmarkConfig(
     dataset_names=['general'],
     ocr_module=True,
+    prompt_with_android_tree=False,  # Use default prompt
+    add_image_history=True,  # Enable image history for better context
     start_episode=0,
     end_episode=50,
     output_dir='./results',
@@ -90,6 +94,8 @@ from src.mmllm.evaluation.types import BenchmarkConfig
 base_config = {
     'dataset_names': ['general'],
     'ocr_module': True,
+    'prompt_with_android_tree': False,
+    'add_image_history': True,
     'start_episode': 0,
     'end_episode': 10,
     'output_dir': './perf_test',

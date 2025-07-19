@@ -44,7 +44,11 @@ def process_episode_batch(batch_data: Tuple[List[Any], str, BenchmarkConfig, int
     episode_batch, dataset_name, config, start_idx = batch_data
     
     # Initialize components for this worker process
-    agent = SimpleOCRAgent(ocr_module=config.ocr_module)
+    agent = SimpleOCRAgent(
+        ocr_module=config.ocr_module,
+        prompt_with_android_tree=config.prompt_with_android_tree,
+        add_image_history=config.add_image_history
+    )
     episode_loader = EpisodeLoader()
     
     # Set up logging for this worker
@@ -230,7 +234,11 @@ class BenchmarkingPipeline:
         self.logger = logging.getLogger(__name__)
         
         # Initialize components
-        self.agent = SimpleOCRAgent(ocr_module=config.ocr_module)
+        self.agent = SimpleOCRAgent(
+            ocr_module=config.ocr_module,
+            prompt_with_android_tree=config.prompt_with_android_tree,
+            add_image_history=config.add_image_history
+        )
         self.episode_loader = EpisodeLoader()
         self.metrics_calculator = MetricsCalculator()
         self.csv_exporter = CSVExporter()
