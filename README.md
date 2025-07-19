@@ -159,23 +159,61 @@ python -m mmllm.main demo
 python -m mmllm.main evaluate --dataset google_apps --episodes 3 --max-steps 10
 ```
 
-## Development
 
-For development and testing:
+## Episode Plotting
 
+For visualizing individual episodes from the Android in the Wild dataset, use the `plot_episode.py` script:
+
+### Basic Usage
+
+**Plot a specific episode by index:**
 ```bash
-# Install development dependencies
-uv sync --group dev
-
-# Run tests
-uv run pytest
-
-# Format code
-uv run ruff format
-
-# Lint code
-uv run ruff check
+python plot_episode.py 5
 ```
+
+**Plot from a different dataset:**
+```bash
+python plot_episode.py 10 --dataset general
+```
+
+**Save plots to a specific directory:**
+```bash
+python plot_episode.py 5 --output_dir ./my_plots
+```
+
+### Available Options
+
+- `episode_index` (required): The episode index to plot (0-based)
+- `--dataset`: Dataset to use (choices: `general`, `google_apps`, `install`, `single`, `web_shopping`, default: `google_apps`)
+- `--output_dir`: Output directory for plots (default: `./plots`)
+
+### Features
+
+- **Ground Truth Visualization**: The script plots the episode with ground truth actions highlighted
+- **Automatic Directory Creation**: Output directory is created if it doesn't exist
+- **Multiple Dataset Support**: Works with all Android in the Wild datasets
+- **Simple Interface**: Minimal command-line interface focused on episode visualization
+
+### Examples
+
+**Plot episode 0 from Google Apps dataset:**
+```bash
+python plot_episode.py 0
+```
+
+**Plot episode 15 from Install dataset to custom directory:**
+```bash
+python plot_episode.py 15 --dataset install --output_dir ./episode_visualizations
+```
+
+**Plot multiple episodes (run separately):**
+```bash
+python plot_episode.py 0 --output_dir ./plots
+python plot_episode.py 1 --output_dir ./plots
+python plot_episode.py 2 --output_dir ./plots
+```
+
+The generated plots will show the episode screens with ground truth actions overlaid, making it easy to understand the expected user interactions for each step.
 
 ## Troubleshooting
 
@@ -183,3 +221,17 @@ uv run ruff check
 - Check that TensorFlow datasets are accessible
 - Verify sufficient disk space for results output
 - Use `--dry-run` to validate configuration before running
+
+
+# Benchmarking results 
+## What we want to test?
+1. OCR vs NO OCR 
+* all datasets, 10 episodes, max_steps=5
+
+2. different models o-mini vs gpt4
+* general, 10 spisodes, max_steps=5
+
+3. Some visulasaiotns
+* What is most comman error
+* average devation from user input to model input
+* 
