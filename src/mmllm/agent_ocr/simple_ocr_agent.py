@@ -173,25 +173,7 @@ class SimpleOCRAgent:
                     text_content += f"- UI: {item.ui_description}\n"
                     text_content += f"- Action: {item.action_taken}\n"
         
-        text_content += """
-        
-        You must respond with a JSON object containing:
-        {
-            "action_type": <int>,  // 1=tap, 2=long_press, 3=swipe, 4=drag, 5=type_text
-            "coordinates": [<float>, <float>],  // x,y coordinates (0-1 normalized)
-            "lift_coordinates": [<float>, <float>],  // for drag/swipe actions
-            "text": "<string>",  // for type_text actions
-            "task_done": <bool>  // true if the overall goal is achieved
-        }
-        
-        Examples:
-        - Tap a button: {"action_type": 1, "coordinates": [0.5, 0.7], "task_done": false}
-        - Type text: {"action_type": 5, "coordinates": [0.5, 0.3], "text": "hello world", "task_done": false}
-        - Drag: {"action_type": 4, "coordinates": [0.2, 0.8], "lift_coordinates": [0.8, 0.8], "task_done": false}
-        - Task complete: {"action_type": 0, "coordinates": [0, 0], "task_done": true}
-        
-        Respond only with the JSON object:
-        """
+        text_content += """"""
         
         # Start with text content
         content = [
