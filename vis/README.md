@@ -10,6 +10,8 @@ This folder contains visualization notebooks for analyzing MMLLM benchmark resul
 **Features:**
 - Loads and analyzes all CSV and JSON data from the `results/` folder
 - Compares stateless vs stateful configurations
+- Analyzes tree vs no-tree performance
+- Compares OCR vs no-OCR impact on visual tasks
 - Analyzes performance across different datasets
 - Identifies common failure patterns and mismatch types
 - Creates comprehensive dashboard visualizations
@@ -17,7 +19,43 @@ This folder contains visualization notebooks for analyzing MMLLM benchmark resul
 
 **Sections:**
 1. Setup Environment and Import Libraries
-2. Load and Explore Data Structure  
+2. Load and Explore Data Structure
+3. Individual Run Analysis - Stateless vs Stateful
+3.5. OCR vs No-OCR Analysis
+4. Dataset-Specific Performance Comparison
+5. Cross-Run Analysis - Common Failure Types
+6. Cross-Run Analysis - Dataset Mismatch Patterns
+7. Report Integration and Insights
+8. Summary Visualizations - Complete Story Dashboard
+
+### 2. `tree_analysis.ipynb`
+**Focused analysis** comparing tree-based vs non-tree-based configurations.
+
+**Features:**
+- Direct comparison between tree and no-tree configurations
+- Decision tree impact analysis on different task types
+- Efficiency analysis (speed vs accuracy trade-offs)
+- Dataset-specific effects of tree structures
+
+### 3. `stateful_vs_stateless_analysis.ipynb`
+**Focused analysis** comparing stateful vs stateless configurations.
+
+**Features:**
+- Direct comparison between stateful and stateless configurations
+- Memory impact analysis on different task types
+- Context retention analysis for multi-step reasoning
+- Efficiency analysis and performance trade-offs
+- Dataset-specific effects of state management
+
+### 4. `ocr_vs_no_ocr_analysis.ipynb`
+**Focused analysis** comparing OCR-enabled vs non-OCR configurations.
+
+**Features:**
+- Direct comparison between OCR and no-OCR configurations
+- Text recognition impact on visual understanding tasks
+- Analysis of visual vs text-heavy task performance
+- Coordinate error analysis for visual localization tasks
+- Dataset-specific benefits of OCR capabilities  
 3. Individual Run Analysis - Stateless vs Stateful
 4. Dataset-Specific Performance Comparison
 5. Cross-Run Analysis - Common Failure Types

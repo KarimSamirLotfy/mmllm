@@ -102,8 +102,8 @@ Test the impact of OCR module across all datasets with 10 episodes each:
 # Without OCR
 uv run run_parallel_benchmark.py \
   --run-name "NO-OCR" \
-  --end-episode 10 \
-  --workers 10 \
+  --end-episode 5 \
+  --workers 5 \
   --batch-size 1 \
   --datasets general google_apps install single web_shopping
 
@@ -111,8 +111,8 @@ uv run run_parallel_benchmark.py \
 uv run run_parallel_benchmark.py \
   --run-name "OCR" \
   --ocr \
-  --end-episode 10 \
-  --workers 10 \
+  --end-episode 5 \
+  --workers 5 \
   --batch-size 1 \
   --datasets general google_apps install single web_shopping
 ```
