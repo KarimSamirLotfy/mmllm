@@ -1,6 +1,6 @@
 
 
-from typing import Annotated, TypedDict, List, Dict, Any, Optional
+from typing import Annotated, TypedDict, List, Dict, Any, Optional, Literal
 from PIL import Image
 from dataclasses import dataclass, asdict
 import json
@@ -17,14 +17,20 @@ from pydantic import BaseModel, Field
 
 from mmllm.agent_ocr.extract import extract_ui_elements
 from mmllm.agent_ocr.process import add_grid_with_anchors, overlay_grid_with_anchors
-from mmllm.agent_ocr.prompt import DATASET_PROMPT
+from mmllm.agent_ocr.prompt import AITW_PROMPT, AITW_PROMPT_WITH_ANDROID_TREE
 from mmllm.model import get_model
 from mmllm.utils.visualization import base64_to_image, base64_to_pil_image
 
 
 class ActionOutput(BaseModel):
     """Structured output schema for agent actions."""
-    action_type: int = Field(description="Action type: 1=tap, 2=long_press, 3=swipe, 4=drag, 5=type_text, 0=task_complete")
+    action_type: Literal[3, 4, 5, 6, 10, 11] = Field(description="""Action type: 
+                                            3=Sends text to the emulator,    
+                                            4=Represents all gesture actions using dual points (e.g., pinch, zoom, click). Clicks are interpreted when the start and end points are the same, while swipes are interpreted when the start and end points differ.
+                                            5=Represents an explicit press of the back button via ADB.
+                                            6=Represents an explicit press of the home button via ADB.
+                                            10=Indicates the desired task has been completed or is already complete; resets the environment.
+                                            11=Indicates the desired task is impossible to complete; resets the environment.""")
     coordinates: List[float] = Field(description="x,y coordinates (0-1 normalized)", default=[0, 0])
     lift_coordinates: Optional[List[float]] = Field(default=[0, 0], description="lift coordinates for drag/swipe actions")
     text: Optional[str] = Field(default=None, description="text to type for type_text actions")
@@ -57,7 +63,7 @@ class AgentState(TypedDict):
 class SimpleOCRAgent:
     """LangGraph-based OCR agent for UI automation"""
     
-    def __init__(self, ocr_module:bool = False):
+    def __init__(self, ocr_module:bool = False, prompt_with_android_tree:bool = False, add_image_history:bool = False):
         """
         Initialize the agent with a language model
         
@@ -91,6 +97,8 @@ class SimpleOCRAgent:
         self.graph = self.graph_builder.compile(checkpointer=memory)
 
         self.ocr_module = ocr_module
+        self.prompt_with_android_tree = prompt_with_android_tree
+        self.add_image_history = add_image_history
 
     
     def _image_to_base64(self, image: Any) -> Optional[str]:
@@ -142,10 +150,14 @@ class SimpleOCRAgent:
                anchor_radius=5,
                anchor_labels=False
             )
+        if self.prompt_with_android_tree:
+            prompt = AITW_PROMPT_WITH_ANDROID_TREE
+        else:
+            prompt = AITW_PROMPT
         # Build text content with context
         text_content = f"""
-        {DATASET_PROMPT}
-        
+        {prompt}
+
         Goal: {goal}
         
         Step {current_step}: Analyze the current UI and decide the next action.
@@ -166,25 +178,7 @@ class SimpleOCRAgent:
                     text_content += f"- UI: {item.ui_description}\n"
                     text_content += f"- Action: {item.action_taken}\n"
         
-        text_content += """
-        
-        You must respond with a JSON object containing:
-        {
-            "action_type": <int>,  // 1=tap, 2=long_press, 3=swipe, 4=drag, 5=type_text
-            "coordinates": [<float>, <float>],  // x,y coordinates (0-1 normalized)
-            "lift_coordinates": [<float>, <float>],  // for drag/swipe actions
-            "text": "<string>",  // for type_text actions
-            "task_done": <bool>  // true if the overall goal is achieved
-        }
-        
-        Examples:
-        - Tap a button: {"action_type": 1, "coordinates": [0.5, 0.7], "task_done": false}
-        - Type text: {"action_type": 5, "coordinates": [0.5, 0.3], "text": "hello world", "task_done": false}
-        - Drag: {"action_type": 4, "coordinates": [0.2, 0.8], "lift_coordinates": [0.8, 0.8], "task_done": false}
-        - Task complete: {"action_type": 0, "coordinates": [0, 0], "task_done": true}
-        
-        Respond only with the JSON object:
-        """
+        text_content += """"""
         
         # Start with text content
         content = [
@@ -207,6 +201,8 @@ class SimpleOCRAgent:
         # Add historical images (limit to last 2 for memory)
         if history:
             recent_history = history[-2:]  # Last 2 images
+            if not self.add_image_history:
+                recent_history = []
             for item in recent_history:
                 hist_image_b64 = self._image_to_base64(item.image)
                 if hist_image_b64:
@@ -347,7 +343,13 @@ class SimpleOCRAgent:
             final_state = event
             
         # 
-        return final_state
+        final_state_fliped = final_state
+        # Flip coordinates to match ground truth
+        temp = final_state_fliped.get('action', {}).get('coordinates', [0, 0]) or [0, 0]
+        final_state_fliped['action']['coordinates'] = [temp[1], temp[0]]
+        temp = final_state_fliped.get('action', {}).get('lift_coordinates', [0, 0]) or [0, 0]
+        final_state_fliped['action']['lift_coordinates'] = [temp[1], temp[0]]
+        return final_state_fliped
     
     def run_agent(self, 
                   image: Any,

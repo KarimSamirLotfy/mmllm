@@ -5,6 +5,17 @@ import colorlog
 
 def setup_logging(logging_level=logging.INFO):
     """Set up logging configuration with colored output and file logging."""
+    # Silence TensorFlow and system warnings/errors
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow logs (0=all, 1=info, 2=warning, 3=error)
+    os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # Disable oneDNN custom operations
+    
+    # Set PyDevD timeout to 5 seconds to avoid slow repr warnings
+    os.environ['PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT'] = '5'
+    
+    # Silence specific loggers
+    logging.getLogger('tensorflow').setLevel(logging.ERROR)
+    logging.getLogger('absl').setLevel(logging.ERROR)
+    
     # Create logs directory if it doesn't exist
     logs_dir = "logs"
     os.makedirs(logs_dir, exist_ok=True)
@@ -56,7 +67,22 @@ def setup_logging(logging_level=logging.INFO):
     # Set specific logger level for mmllm
     logging.getLogger("mmllm").setLevel(logging_level)
     
+    # Silence additional verbose loggers
+    logging.getLogger('urllib3').setLevel(logging.WARNING)
+    logging.getLogger('requests').setLevel(logging.WARNING)
+    logging.getLogger('google').setLevel(logging.ERROR)
+    logging.getLogger('google.auth').setLevel(logging.ERROR)
+    logging.getLogger('google.cloud').setLevel(logging.ERROR)
+    logging.getLogger('jax').setLevel(logging.WARNING)
+    logging.getLogger('jax._src.dispatch').setLevel(logging.WARNING)
+    logging.getLogger("matplotlib").setLevel(logging.ERROR)
+    logging.getLogger("pydevd ").setLevel(logging.ERROR)
+    logging.getLogger("h5py").setLevel(logging.ERROR)
+    logging.getLogger("openai").setLevel(logging.ERROR)
+    logging.getLogger("langsmith").setLevel(logging.ERROR)
+    logging.getLogger("httpcore").setLevel(logging.ERROR)
+    logging.getLogger("pytesseract").setLevel(logging.ERROR)
     # Log the setup completion
     logger.info(f"Logging initialized - Console: colored output, File: {log_filename}")
 
-setup_logging()
+setup_logging(logging_level=logging.DEBUG)

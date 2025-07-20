@@ -122,12 +122,12 @@ def plot_episode(
         
         if show_actions:
             # Plot ground truth action in default color (usually red/blue)
-            if ground_truth_action:
+            if ground_truth_action :
                 touch_x, touch_y = ground_truth_action.get('coordinates', (0, 0))
                 lift_x, lift_y = ground_truth_action.get('lift_coordinates', (touch_x, touch_y))
                 action_type = ground_truth_action.get('action_type', 0)
                 
-                axs[i] = _plot_action(
+                _plot_action(
                     ex_action_type=action_type,
                     screen_height=img.shape[0],
                     screen_width=img.shape[1],
@@ -140,22 +140,35 @@ def plot_episode(
                 )
             
             # Plot model action in green color
-            if model_action and 'action_type' in model_action and model_action['action_type'] == 4:
-                model_touch_x, model_touch_y = model_action.get('coordinates', (0, 0))
-                model_lift_x, model_lift_y = model_action.get('lift_coordinates', (model_touch_x, model_touch_y))
-                model_action_type = model_action.get('action_type', 0)
+            if model_action and 'action_type' in model_action:
+                _plot_action(
+                    ex_action_type=model_action['action_type'],
+                    screen_height=img.shape[0],
+                    screen_width=img.shape[1],
+                    touch_x=model_action.get('coordinates', (0, 0))[0],
+                    touch_y=model_action.get('coordinates', (0, 0))[1],
+                    lift_x=model_action.get('lift_coordinates', (0, 0))[0],
+                    lift_y=model_action.get('lift_coordinates', (0, 0))[1],
+                    action_text=model_action.get('text', None),
+                    ax=axs[i],
+                    color='green',  # Use green for model actions
+                )
+            # if model_action and 'action_type' in model_action and model_action['action_type'] == 4:
+            #     model_touch_x, model_touch_y = model_action.get('coordinates', (0, 0))
+            #     model_lift_x, model_lift_y = model_action.get('lift_coordinates', (model_touch_x, model_touch_y))
+            #     model_action_type = model_action.get('action_type', 0)
                 
-                # Plot model action with green color
-                axs[i] =  _plot_dual_point(
-                            touch_x=model_touch_x,
-                            touch_y=model_touch_y,
-                            lift_x=model_lift_x,
-                            lift_y=model_lift_y,
-                            screen_height=img.shape[0],
-                            screen_width=img.shape[1],
-                            ax=axs[i],
-                            color='green',
-                        )
+            #     # Plot model action with green color
+            #     axs[i] =  _plot_dual_point(
+            #                 touch_x=model_touch_x,
+            #                 touch_y=model_touch_y,
+            #                 lift_x=model_lift_x,
+            #                 lift_y=model_lift_y,
+            #                 screen_height=img.shape[0],
+            #                 screen_width=img.shape[1],
+            #                 ax=axs[i],
+            #                 color='green',
+            #             )
 
 
         

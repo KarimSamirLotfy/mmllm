@@ -23,7 +23,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from android_in_the_wild import action_type as action_type_lib
+from mmllm.android_in_the_wild import action_type as action_type_lib
 
 
 _TAP_DISTANCE_THRESHOLD = 0.14  # Fraction of the screen
@@ -157,7 +157,27 @@ def _check_drag_actions_match(
   drag_2_magnitudes = jnp.abs(drag_2_deltas)
   drag_2_main_axis = np.argmax(drag_2_magnitudes)
 
-  return jnp.equal(drag_1_main_axis, drag_2_main_axis)
+  # Calculate angles of drag vectors using atan2 (returns angle in radians)
+  drag_1_angle = jnp.arctan2(drag_1_deltas[0], drag_1_deltas[1])  # y, x
+  drag_2_angle = jnp.arctan2(drag_2_deltas[0], drag_2_deltas[1])  # y, x
+  
+  # Calculate angular difference
+  angle_diff = jnp.abs(drag_1_angle - drag_2_angle)
+  
+  # Handle angle wrap-around (e.g., 10° and 350° should be considered close)
+  angle_diff = jnp.minimum(angle_diff, 2 * jnp.pi - angle_diff)
+  
+  # Convert 45 degrees to radians
+  angle_threshold_rad = jnp.pi / 4  # 45 degrees
+  
+  # Check if angles are within 45 degrees of each other
+  angles_within_threshold = angle_diff <= angle_threshold_rad
+  
+  # Return true if either the main axes match OR the angles are within 45 degrees
+  return jnp.logical_or(
+      jnp.equal(drag_1_main_axis, drag_2_main_axis),
+      angles_within_threshold
+  )
 
 
 def check_actions_match(

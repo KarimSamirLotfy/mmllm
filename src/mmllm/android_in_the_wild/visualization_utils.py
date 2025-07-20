@@ -29,7 +29,7 @@ from mmllm.android_in_the_wild import action_type
 
 
 _NUM_EXS_PER_ROW = 5
-_ACTION_COLOR = 'blue'
+_ACTION_COLOR = (0, 0, 1, 0.7)  # RGBA: blue with alpha 0.7
 
 
 def is_tap_action(
@@ -102,19 +102,33 @@ def _get_annotation_positions(
 
 
 def _add_text(
-    text, screen_width, screen_height, ax
+    text, screen_width, screen_height, ax, color=_ACTION_COLOR
 ):
   """Plots text on the given matplotlib axis."""
-  t = ax.text(
-      0.5 * screen_width,
-      0.95 * screen_height,
-      text,
-      color='white',
-      size=20,
-      horizontalalignment='center',
-      verticalalignment='center',
-  )
-  t.set_bbox(dict(facecolor=_ACTION_COLOR, alpha=0.9))
+  if color == _ACTION_COLOR:
+    t = ax.text(
+        0.5 * screen_width,
+        0.95 * screen_height,
+        text,
+        color='white',
+        size=20,
+        horizontalalignment='center',
+        verticalalignment='center',
+    )
+    t.set_bbox(dict(facecolor=color, alpha=0.9))
+  else:
+    # just put it a bit above
+    t = ax.text(
+        0.5 * screen_width,
+        0.1 * screen_height,
+        text,
+        color='white',
+        size=20,
+        horizontalalignment='center',
+        verticalalignment='center',
+    )
+    t.set_bbox(dict(facecolor=color, alpha=0.9))
+
 
 
 def _plot_dual_point(
@@ -162,11 +176,12 @@ def _plot_action(
     lift_y,
     action_text,
     ax,
+    color=_ACTION_COLOR,
 ):
   """Plots the example's action on the given matplotlib axis."""
   if ex_action_type == action_type.ActionType.DUAL_POINT:
     return _plot_dual_point(
-        touch_x, touch_y, lift_x, lift_y, screen_height, screen_width, ax
+        touch_x, touch_y, lift_x, lift_y, screen_height, screen_width, ax, color
     )
   elif ex_action_type in (
       action_type.ActionType.PRESS_BACK,
@@ -174,16 +189,16 @@ def _plot_action(
       action_type.ActionType.PRESS_ENTER,
   ):
     text = action_type.ActionType(ex_action_type).name
-    _add_text(text, screen_width, screen_height, ax)
+    _add_text(text, screen_width, screen_height, ax, color)
   elif ex_action_type == action_type.ActionType.TYPE:
     text = f'Input text "{action_text}"'
-    _add_text(text, screen_width, screen_height, ax)
+    _add_text(text, screen_width, screen_height, ax, color)
   elif ex_action_type == action_type.ActionType.STATUS_TASK_COMPLETE:
     text = 'Set episode status as COMPLETE'
-    _add_text(text, screen_width, screen_height, ax)
+    _add_text(text, screen_width, screen_height, ax, color)
   elif ex_action_type == action_type.ActionType.STATUS_TASK_IMPOSSIBLE:
     text = 'Set episode status as IMPOSSIBLE'
-    _add_text(text, screen_width, screen_height, ax)
+    _add_text(text, screen_width, screen_height, ax, color)
   else:
     logger.warning('Action type not supported')
 
