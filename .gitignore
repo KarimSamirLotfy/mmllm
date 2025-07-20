@@ -16,4 +16,4 @@ evaluation_reports/
 .env
 
 old/
-benchmark_results/
+# benchmark_results/
