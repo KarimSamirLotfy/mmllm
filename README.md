@@ -53,6 +53,14 @@ uv run run_parallel_benchmark.py --datasets general --end-episode 5 --workers 4
 | **[System Architecture](docs/SYSTEM_ARCHITECTURE.md)** | Technical architecture, components, and data flow | Understanding system internals and customization |
 | **[Utilities Guide](docs/UTILITIES.md)** | Tools for visualization, analysis, and debugging | Data exploration and result analysis |
 
+### 🏗️ Main Architecture File
+
+The primary implementation for the OCR agent is located at:
+
+```
+src/mmllm/agent_ocr/simple_ocr_agent.py
+```
+
 ### 📋 Quick Reference
 
 | Task | Command | Documentation |
@@ -115,11 +123,22 @@ python debug_agent.py --dataset general --episode 0 --verbose
 python -m mmllm.main benchmark --datasets general --episodes 0:5
 ```
 
-# Shout out
+## Results
+
+All benchmark results are available in the `Results` folder.
+
+> **Note:** The reported results are based on a subset of the full dataset due to financial constraints associated with large-scale benchmarking.
+
+---
+
+## Shout Out
+
+Special thanks to all contributors and supporters of the MMLLM project!
 - Android in the Wild dataset from Google Research
 - TensorFlow Datasets for data infrastructure
 - OpenAI and Azure OpenAI for language model capabilities
 - TUM (Software Enginnering and AI Chair)
+
 
 # Authors
 * Karim Lotfy
