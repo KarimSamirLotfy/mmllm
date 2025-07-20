@@ -129,6 +129,104 @@ All benchmark results are available in the `Results` folder.
 
 > **Note:** The reported results are based on a subset of the full dataset due to financial constraints associated with large-scale benchmarking.
 
+# Reproduce the Results 
+## Research Benchmarks
+
+These are the benchmark configurations used for generating the research report:
+
+### 1. OCR vs NO OCR Comparison
+
+Test the impact of OCR module across all datasets with 10 episodes each:
+
+```bash
+# Without OCR
+uv run run_parallel_benchmark.py \
+  --run-name "NO-OCR" \
+  --end-episode 5 \
+  --workers 5 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+
+# With OCR
+uv run run_parallel_benchmark.py \
+  --run-name "OCR" \
+  --ocr \
+  --end-episode 5 \
+  --workers 5 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+```
+
+### 2. Model Comparison (GPT-4 vs GPT-4 Omni Mini)
+
+Change model deployment in `.env` file between runs:
+
+```bash
+# GPT-4 (set AZURE_DEPLOYMENT="gpt-4" in .env)
+uv run run_parallel_benchmark.py \
+  --run-name "GPT4" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single web_shopping
+
+# GPT-4 Omni Mini (set AZURE_DEPLOYMENT="o4-mini" in .env)
+uv run run_parallel_benchmark.py \
+  --run-name "O-Mini" \
+  --ocr \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single 
+```
+
+### 3. Stateful vs Stateless Agent Comparison
+
+Test the impact of image history on agent performance:
+
+```bash
+# Stateless (no image history)
+uv run run_parallel_benchmark.py \
+  --run-name "stateless" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single 
+
+# Stateful (with image history)
+uv run run_parallel_benchmark.py \
+  --add-image-history \
+  --run-name "stateful" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single 
+```
+
+### 4. Android Tree Prompt vs Standard Prompt
+
+Test different prompting strategies:
+
+```bash
+# Standard prompt
+uv run run_parallel_benchmark.py \
+  --run-name "standard-prompt" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single 
+
+# Android tree prompt
+uv run run_parallel_benchmark.py \
+  --prompt-with-android-tree \
+  --run-name "android-tree-prompt" \
+  --end-episode 10 \
+  --workers 10 \
+  --batch-size 1 \
+  --datasets general google_apps install single 
+```
+
+
 ---
 
 ## Shout Out
