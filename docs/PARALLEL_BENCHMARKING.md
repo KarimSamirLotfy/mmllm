@@ -137,7 +137,7 @@ uv run run_parallel_benchmark.py \
   --end-episode 10 \
   --workers 10 \
   --batch-size 1 \
-  --datasets general google_apps install single web_shopping
+  --datasets general google_apps install single 
 ```
 
 ### 3. Stateful vs Stateless Agent Comparison
@@ -148,21 +148,19 @@ Test the impact of image history on agent performance:
 # Stateless (no image history)
 uv run run_parallel_benchmark.py \
   --run-name "stateless" \
-  --ocr \
   --end-episode 10 \
   --workers 10 \
   --batch-size 1 \
-  --datasets general google_apps install single web_shopping
+  --datasets general google_apps install single 
 
 # Stateful (with image history)
 uv run run_parallel_benchmark.py \
   --add-image-history \
-  --ocr \
   --run-name "stateful" \
   --end-episode 10 \
   --workers 10 \
   --batch-size 1 \
-  --datasets general google_apps install single web_shopping
+  --datasets general google_apps install single 
 ```
 
 ### 4. Android Tree Prompt vs Standard Prompt
@@ -177,7 +175,7 @@ uv run run_parallel_benchmark.py \
   --end-episode 10 \
   --workers 10 \
   --batch-size 1 \
-  --datasets general google_apps install single web_shopping
+  --datasets general google_apps install single 
 
 # Android tree prompt
 uv run run_parallel_benchmark.py \
@@ -187,7 +185,7 @@ uv run run_parallel_benchmark.py \
   --end-episode 10 \
   --workers 10 \
   --batch-size 1 \
-  --datasets general google_apps install single web_shopping
+  --datasets general google_apps install single 
 ```
 
 ## Performance Optimization
