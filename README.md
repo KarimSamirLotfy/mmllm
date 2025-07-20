@@ -63,19 +63,9 @@ uv run run_parallel_benchmark.py --datasets general --end-episode 5 --workers 4
 | Plot episode | `python plot_episode.py 5 --dataset general` | [Utilities](docs/UTILITIES.md#episode-plotting) |
 | Analyze results | `python performance_comparison.py --input results.csv` | [Utilities](docs/UTILITIES.md#performance-analysis) |
 
-## Available Datasets
 
-The system supports evaluation on multiple Android in the Wild dataset variants:
 
-- **`general`** - General Android interactions and navigation
-- **`google_apps`** - Google applications specific tasks
-- **`install`** - App installation and setup scenarios
-- **`single`** - Single-step interaction tasks
-- **`web_shopping`** - Web shopping and e-commerce workflows
-
-## Key Capabilities
-
-### 🔬 Research Features
+### 🔬 Research Intentions
 
 - **OCR vs No-OCR Comparison**: Evaluate impact of text recognition
 - **Model Comparison**: Test different LLM backends (GPT-4, GPT-4 Omni Mini)
@@ -95,29 +85,6 @@ The system supports evaluation on multiple Android in the Wild dataset variants:
 - **Performance Metrics**: Success rates, timing analysis, error classification
 - **Comparative Analysis**: Side-by-side benchmark comparisons
 - **Export Capabilities**: Multiple output formats for further analysis
-
-## Getting Started by Use Case
-
-### 🔬 Researchers
-
-1. **Setup**: Follow [Installation Guide](docs/INSTALLATION.md)
-2. **Explore Data**: Use [episode plotting](docs/UTILITIES.md#episode-plotting) to understand datasets
-3. **Run Experiments**: Use [parallel benchmarking](docs/PARALLEL_BENCHMARKING.md) for comprehensive evaluation
-4. **Analyze Results**: Use [analysis tools](docs/UTILITIES.md#performance-analysis) for insights
-
-### 👩‍💻 Developers
-
-1. **Setup**: Follow [Installation Guide](docs/INSTALLATION.md)
-2. **Understand Architecture**: Read [System Architecture](docs/SYSTEM_ARCHITECTURE.md)
-3. **Start Simple**: Use [basic benchmarking](docs/BENCHMARKING.md) for development
-4. **Debug**: Use [debugging tools](docs/UTILITIES.md#debugging-tools) for troubleshooting
-
-### 📈 Analysts
-
-1. **Setup**: Follow [Installation Guide](docs/INSTALLATION.md)
-2. **Run Benchmarks**: Use [benchmarking guides](docs/BENCHMARKING.md) to generate data
-3. **Visualize**: Use [plotting tools](docs/UTILITIES.md#episode-plotting) for visualization
-4. **Export**: Use [conversion tools](docs/UTILITIES.md#data-conversion-tools) for external analysis
 
 ## Example Workflows
 
@@ -148,63 +115,12 @@ python debug_agent.py --dataset general --episode 0 --verbose
 python -m mmllm.main benchmark --datasets general --episodes 0:5
 ```
 
-## System Requirements
-
-- **Python**: 3.8 or higher
-- **Memory**: 8GB RAM minimum, 16GB recommended for parallel processing
-- **Storage**: 5GB free space for datasets and results
-- **Network**: Stable internet connection for API calls and dataset downloads
-
-## API Requirements
-
-- **OpenAI API Key** or **Azure OpenAI** credentials for LLM inference
-- **Tavily API Key** for web search functionality (optional)
-- **LangSmith API Key** for tracing and monitoring (optional)
-
-See [Installation Guide](docs/INSTALLATION.md#environment-configuration) for detailed setup instructions.
-
-## Contributing
-
-We welcome contributions! Please see our contributing guidelines for:
-
-- Code style and standards
-- Testing requirements
-- Documentation standards
-- Pull request process
-
-## Support
-
-### Documentation Issues
-
-If you find issues with the documentation:
-1. Check the relevant guide in the [docs/](docs/) directory
-2. Search existing issues
-3. Create a new issue with specific details
-
-### Technical Issues
-
-For technical problems:
-1. Check [troubleshooting sections](docs/INSTALLATION.md#troubleshooting) in the guides
-2. Use [debugging tools](docs/UTILITIES.md#debugging-tools)
-3. Check system requirements and dependencies
-
-### Feature Requests
-
-For new features or enhancements:
-1. Review [System Architecture](docs/SYSTEM_ARCHITECTURE.md) for extension points
-2. Check existing feature requests
-3. Create a detailed feature request issue
-
-## License
-
-This project is licensed under the MIT License. See LICENSE file for details.
-
-## Acknowledgments
-
+# Shout out
 - Android in the Wild dataset from Google Research
 - TensorFlow Datasets for data infrastructure
 - OpenAI and Azure OpenAI for language model capabilities
+- TUM (Software Enginnering and AI Chair)
 
----
-
-**Next Steps**: Start with the [Installation Guide](docs/INSTALLATION.md) to set up your environment, then explore the specific guides based on your use case.
+# Authors
+* Karim Lotfy
+* Cansin Canberi
