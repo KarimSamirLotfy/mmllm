@@ -38,6 +38,17 @@ python run_parallel_benchmark.py \
 python run_parallel_benchmark.py --sequential --datasets general --end-episode 10
 ```
 
+### Memory-safe mode (for unstable systems)
+```bash
+# If you get "double free" or "tcache" errors, use this
+python run_parallel_benchmark.py \
+  --datasets general \
+  --workers 1 \
+  --batch-size 1 \
+  --end-episode 10 \
+  --verbose
+```
+
 ## Python API Usage
 
 ### Simple parallel benchmark
@@ -83,6 +94,15 @@ report = pipeline.generate_comprehensive_report(results)
 ### Compare parallel vs sequential
 ```bash
 python performance_comparison.py
+```
+
+### Safe benchmark runner (for problematic machines)
+```bash
+# Use the safe benchmark runner for memory corruption issues
+python run_safe_benchmark.py --dataset general --episodes 5 --ocr
+
+# Or with sequential processing (safest)
+python run_safe_benchmark.py --dataset general --episodes 5 --sequential
 ```
 
 ### Example with different worker counts
@@ -153,7 +173,40 @@ for workers in [1, 2, 4, 8]:
 - Check memory usage and reduce batch size
 - Verify all dependencies are installed
 
+### Memory corruption errors (double free, tcache)?
+- **Immediate fix**: Use sequential mode: `--sequential`
+- **Root cause**: Usually from TensorFlow/JAX in multiprocessing
+- **Prevention strategies**:
+  - Reduce worker count: `--workers 1` or `--workers 2`
+  - Use smaller batch sizes: `--batch-size 1`
+  - Set environment variables:
+    ```bash
+    export TF_CPP_MIN_LOG_LEVEL=3
+    export CUDA_VISIBLE_DEVICES=""
+    export TF_ENABLE_ONEDNN_OPTS=0
+    ```
+  - Force fork start method (Linux only):
+    ```bash
+    export PYTHONMULTIPROCESSING_START_METHOD=fork
+    ```
+
 ### Import errors in workers?
 - Ensure PYTHONPATH includes src directory
 - Check that all modules can be imported
 - Try sequential mode to isolate the issue
+
+### Machine-specific crashes?
+Different machines may have varying tolerance for parallel processing due to:
+- Different TensorFlow/CUDA installations
+- Memory management differences
+- Kernel version variations
+- Hardware-specific optimizations
+
+**Quick fixes for unstable machines**:
+```bash
+# Conservative parallel settings
+python run_parallel_benchmark.py --datasets general --workers 1 --batch-size 1 --end-episode 10
+
+# Or use sequential processing
+python run_parallel_benchmark.py --sequential --datasets general --end-episode 10
+```
