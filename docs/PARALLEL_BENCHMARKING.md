@@ -171,7 +171,6 @@ Test different prompting strategies:
 # Standard prompt
 uv run run_parallel_benchmark.py \
   --run-name "standard-prompt" \
-  --ocr \
   --end-episode 10 \
   --workers 10 \
   --batch-size 1 \
@@ -180,7 +179,6 @@ uv run run_parallel_benchmark.py \
 # Android tree prompt
 uv run run_parallel_benchmark.py \
   --prompt-with-android-tree \
-  --ocr \
   --run-name "android-tree-prompt" \
   --end-episode 10 \
   --workers 10 \
