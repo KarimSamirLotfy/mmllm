@@ -1,6 +1,6 @@
 # Create PRP
 
-## Feature file: PRPs/features/EVALUATION.MD
+## Feature file: PRPs/features/analysis-and-vis.prp
 
 Generate a complete PRP for general feature implementation with thorough research. Ensure context is passed to the AI agent to enable self-validation and iterative refinement. Read the feature file first to understand what needs to be created, how the examples provided help, and any other considerations.
 
