@@ -6,10 +6,11 @@ Example script demonstrating how to use the LangGraph OCR Agent
 import json
 import os
 from .simple_ocr_agent import SimpleOCRAgent, HistoryItem
-
+from dotenv import load_dotenv
+load_dotenv()
 def main():
     """Main example function"""
-    
+    TF_ENABLE_ONEDNN_OPTS=0
     # Set OpenAI API key (make sure you have this in your environment)
     if not os.getenv("OPENAI_API_KEY"):
         print("Warning: OPENAI_API_KEY not found in environment variables")
@@ -18,7 +19,7 @@ def main():
     
     # Initialize the agent
     print("Initializing LangGraph OCR Agent...")
-    agent = SimpleOCRAgent(model_name="gpt-4o", temperature=0.1)
+    agent = SimpleOCRAgent(model_name="o4-mini", temperature=0.1)
     
     # Example scenario: Logging into an app
     print("\n=== Example Scenario: App Login ===")

@@ -1,0 +1,20 @@
+{
+  "dataset_names": [
+    "general"
+  ],
+  "ocr_module": false,
+  "start_episode": 0,
+  "end_episode": 5,
+  "output_dir": "./benchmark_results",
+  "run_name": "parallel_benchmark",
+  "max_steps_per_episode": 10,
+  "max_workers": 4,
+  "batch_size": 1,
+  "prompt_with_android_tree": false,
+  "add_image_history": false,
+  "_metadata": {
+    "config_version": "1.0",
+    "saved_at": "config_20250801_195812.json",
+    "config_type": "BenchmarkConfig"
+  }
+}

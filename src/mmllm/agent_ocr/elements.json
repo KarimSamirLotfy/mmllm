@@ -1,0 +1,72 @@
+[
+  {
+    "text": "Play",
+    "confidence": 96,
+    "bounding_box": {
+      "left": 82,
+      "top": 1705,
+      "width": 66,
+      "height": 36
+    },
+    "click_point": {
+      "x": 115,
+      "y": 1723
+    }
+  },
+  {
+    "text": "Store",
+    "confidence": 96,
+    "bounding_box": {
+      "left": 159,
+      "top": 1706,
+      "width": 85,
+      "height": 28
+    },
+    "click_point": {
+      "x": 201,
+      "y": 1720
+    }
+  },
+  {
+    "text": "Gmail",
+    "confidence": 95,
+    "bounding_box": {
+      "left": 369,
+      "top": 1701,
+      "width": 91,
+      "height": 45
+    },
+    "click_point": {
+      "x": 414,
+      "y": 1723
+    }
+  },
+  {
+    "text": "Photos",
+    "confidence": 96,
+    "bounding_box": {
+      "left": 612,
+      "top": 1701,
+      "width": 109,
+      "height": 45
+    },
+    "click_point": {
+      "x": 666,
+      "y": 1723
+    }
+  },
+  {
+    "text": "YouTube",
+    "confidence": 96,
+    "bounding_box": {
+      "left": 847,
+      "top": 1705,
+      "width": 142,
+      "height": 29
+    },
+    "click_point": {
+      "x": 918,
+      "y": 1719
+    }
+  }
+]

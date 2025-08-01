@@ -68,6 +68,7 @@ def overlay_grid_with_anchors(
     combined = Image.alpha_composite(image, overlay)
     combined.save(output_path)
     print(f"Saved: {output_path}")
+    return combined
 
 def add_grid_with_anchors(
     image,

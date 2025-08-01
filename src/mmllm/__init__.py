@@ -3,6 +3,9 @@ import os
 from datetime import datetime
 import colorlog
 
+# Configure TensorFlow to prevent double-free errors
+from mmllm.utils.tf_config import configure_tensorflow
+
 def setup_logging(logging_level=logging.INFO):
     """Set up logging configuration with colored output and file logging."""
     # Silence TensorFlow and system warnings/errors

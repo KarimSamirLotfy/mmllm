@@ -4,41 +4,33 @@ import pytesseract
 import json
 from pytesseract import Output
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
-
-def preprocess_image(pil_image: Image.Image) -> np.ndarray:
-    """Convert PIL image to grayscale and apply adaptive thresholding."""
-    # Convert PIL to OpenCV BGR
-    img_bgr = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
-    # Convert to gray
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-    # Reduce noise and smooth
-    blur = cv2.medianBlur(gray, 3)
-    # Adaptive threshold for crisp text
-    thresh = cv2.adaptiveThreshold(
-        blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV, 15, 9
-    )
-    # Morphological opening to remove small noise
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-    # Invert back for OCR
-    processed = cv2.bitwise_not(cleaned)
-    return processed
+def invert_pil_image(image: Image.Image) -> Image.Image:
+    
+    if image.mode == 'RGBA':
+        r, g, b, a = image.split()
+        rgb_image = Image.merge('RGB', (r, g, b))
+        inverted_rgb = ImageOps.invert(rgb_image)
+        return Image.merge('RGBA', (*inverted_rgb.split(), a))
+    elif image.mode == 'RGB':
+        return ImageOps.invert(image)
+    else:
+        # For grayscale or others, convert to L first
+        return ImageOps.invert(image.convert('L'))
 
 
 def extract_ui_elements(pil_image: Image.Image, use_preprocess: bool = True, normalize: bool = False) -> (list, np.ndarray):
     """Extract UI elements via Tesseract OCR, draw boxes, and emit JSON list."""
     # Choose image for OCR
-    #if use_preprocess:
-    #    ocr_image = preprocess_image(pil_image)
-    #else:
-    #    ocr_image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2GRAY)
+    if use_preprocess:
+        ocr_image = invert_pil_image(pil_image)
+    else:
+        ocr_image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2GRAY)
 
     # Run Tesseract with data output
     data = pytesseract.image_to_data(
-        pil_image,
+        ocr_image,
         output_type=Output.DICT,
         config='--psm 6'
     )
